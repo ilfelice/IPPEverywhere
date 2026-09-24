@@ -1,0 +1,179 @@
+1	Japanese	application/x-vnd.ipp-everywhere	2213424400
+Rear tray	IPPCapabilities		背面トレイ
+Business plain paper	IPPCapabilities		ビジネス普通紙
+Print status	StatusWindow		印刷状況
+Duplex	JobSetupDlg		両面印刷
+Photo paper (matte)	IPPCapabilities		写真用紙 (マット)
+Envelope C6	IPPCapabilities		封筒 C6
+Letterhead	IPPCapabilities		レターヘッド
+Resolution:	PageSetupDlg		解像度:
+Long edge	PWGCap		長辺
+Executive	IPPCapabilities		エグゼクティブ
+Collate	JobSetupDlg		部単位で印刷
+Quality	JobSetupDlg		品質
+Hide status	StatusWindow		状況を隠す
+Automatic	IPPCapabilities		自動
+Page:  	StatusWindow		ページ:  
+Main tray	IPPCapabilities		メイントレイ
+L (89 x 127 mm)	IPPCapabilities		L判 (89 x 127 mm)
+Cancel	AddIPPPrinterWindow		キャンセル
+Envelope Chou 4	IPPCapabilities		長形4号封筒
+Envelope C5	IPPCapabilities		封筒 C5
+Min	JobSetupDlg		最小
+OS  Version 	AboutBox		OS  バージョン 
+B5 (JIS)	IPPCapabilities		B5 (JIS)
+Portrait	PageSetupDlg		縦
+B5 (ISO)	IPPCapabilities		B5 (ISO)
+Automatic	PWGCap		自動
+Envelope You 4	IPPCapabilities		洋形4号封筒
+Left:	MarginView		左:
+A6	IPPCapabilities		A6
+OK	PageSetupDlg		OK
+Please select a printer or enter its URL.	AddIPPPrinterWindow		プリンターを選択するか、URLを入力してください。
+Top:	MarginView		上:
+High	PWGCap		高品質
+Top tray	IPPCapabilities		上段トレイ
+Print selected Pages:	JobSetupDlg		ページ指定:
+Main roll	IPPCapabilities		メインロール
+Units:	MarginView		単位:
+Middle tray	IPPCapabilities		中段トレイ
+Lightweight paper	IPPCapabilities		薄手用紙
+Photo paper (glossy)	IPPCapabilities		写真用紙 (光沢)
+Add printer	AddPrinterDlg		プリンターを追加
+Page: 	StatusWindow		ページ: 
+Heavyweight paper	IPPCapabilities		厚手用紙
+Hagaki (postcard)	IPPCapabilities		はがき
+Add IPP printer	AddIPPPrinterWindow		IPPプリンターを追加
+%d dpi	PWGCap		%d dpi
+Business card (matte)	IPPCapabilities		名刺 (マット)
+Paper setup	PageSetupDlg		用紙設定
+OK	AddPrinterDlg		OK
+Normal	PWGCap		標準
+Envelope Chou 3	IPPCapabilities		長形3号封筒
+Landscape	PageSetupDlg		横
+Prepunched paper	IPPCapabilities		穴あき用紙
+Job cancelled	StatusWindow		ジョブを中止しました
+Ink usage	JobSetupDlg		インク使用量
+Number of copies:	JobSetupDlg		部数:
+Cancel	PageSetupDlg		キャンセル
+Orientation:	PageSetupDlg		印刷方向:
+Scale [%]:	PageSetupDlg		拡大縮小 [%]:
+Large capacity tray	IPPCapabilities		大容量トレイ
+Envelope You 3	IPPCapabilities		洋形3号封筒
+OK	PWGDriver		OK
+Bottom tray	IPPCapabilities		下段トレイ
+A5	IPPCapabilities		A5
+Photo paper	IPPCapabilities		写真用紙
+Hi-Vision (101.6 x 180.6 mm)	IPPCapabilities		ハイビジョン (101.6 x 180.6 mm)
+Darker	JobSetupDlg		濃く
+Envelope feeder	IPPCapabilities		封筒フィーダー
+All pages	JobSetupDlg		すべてのページ
+Envelope Kaku 3	IPPCapabilities		角形3号封筒
+Pages per sheet:	JobSetupDlg		1枚あたりのページ数:
+Description:	AddPrinterDlg		説明:
+Preprinted paper	IPPCapabilities		印刷済み用紙
+Hagaki	IPPCapabilities		はがき
+To:	JobSetupDlg		終了:
+Square photo (127 x 127 mm)	IPPCapabilities		スクエア写真 (127 x 127 mm)
+Photo paper (semi-gloss)	IPPCapabilities		写真用紙 (半光沢)
+Cancel	StatusWindow		キャンセル
+inch	MarginView		インチ
+Dot Pattern:	JobSetupDlg		ドットパターン:
+Envelope Chou 2	IPPCapabilities		長形2号封筒
+Could not search for printers.	AddIPPPrinterWindow		プリンターを検索できませんでした。
+OK	GraphicsDriver		OK
+Plain paper	IPPCapabilities		普通紙
+Gamma	JobSetupDlg		ガンマ
+Paper source:	JobSetupDlg		給紙方法:
+Photo paper (high gloss)	IPPCapabilities		写真用紙 (高光沢)
+Odd-numbered pages	JobSetupDlg		奇数ページ
+Cardstock	IPPCapabilities		厚紙
+Paper size:	PageSetupDlg		用紙サイズ:
+OK	AddIPPPrinterWindow		OK
+A4	IPPCapabilities		A4
+Quality	PWGCap		品質
+Letter	IPPCapabilities		レター
+Envelope Kaku 2	IPPCapabilities		角形2号封筒
+Alternate tray	IPPCapabilities		予備トレイ
+B4 (JIS)	IPPCapabilities		B4 (JIS)
+B4 (ISO)	IPPCapabilities		B4 (ISO)
+Envelope	IPPCapabilities		封筒
+No IPP printers found. Enter the printer URL below.	AddIPPPrinterWindow		IPPプリンターが見つかりません。下にプリンターのURLを入力してください。
+Simplex	PWGCap		片面印刷
+Cancel	JobSetupDlg		キャンセル
+Photo tray	IPPCapabilities		写真トレイ
+Scale to fit page	PageSetupDlg		用紙に合わせて縮小
+Statement	IPPCapabilities		ステートメント
+Hagaki (glossy)	IPPCapabilities		はがき (glossy)
+Color:	JobSetupDlg		カラー:
+Photo paper (satin)	IPPCapabilities		写真用紙 (絹目)
+cm	MarginView		cm
+Grayscale	PWGCap		グレースケール
+Envelope #10	IPPCapabilities		封筒 #10
+Print job setup	JobSetupDlg		印刷ジョブ設定
+Transparency	IPPCapabilities		OHPフィルム
+Hagaki (address side)	IPPCapabilities		はがき (宛名面)
+Right:	MarginView		右:
+Page selection	JobSetupDlg		ページ選択
+Envelope You 1	IPPCapabilities		洋形1号封筒
+Media type	PWGCap		用紙種類
+Legal	IPPCapabilities		リーガル
+Alternate roll	IPPCapabilities		予備ロール
+Booklet	PWGCap		小冊子
+A3	IPPCapabilities		A3
+Remaining document copies:  	StatusWindow		残りの部数:  
+points	MarginView		ポイント
+Duplex binding	PWGCap		綴じ方向
+Bottom:	MarginView		下:
+Fine paper	IPPCapabilities		上質紙
+Green: 	HalftoneView		緑: 
+Printer URL:	AddIPPPrinterWindow		プリンターURL:
+Red: 	HalftoneView		赤: 
+Ledger	IPPCapabilities		レジャー
+Found %count% printers:	AddIPPPrinterWindow		%count% 台のプリンターが見つかりました:
+From:	JobSetupDlg		開始:
+3 x 5 in	IPPCapabilities		3 x 5 インチ
+Searching for printers…	AddIPPPrinterWindow		プリンター検索中…
+Page range	JobSetupDlg		ページ範囲
+Inkjet paper	IPPCapabilities		インクジェット紙
+Found 1 printer:	AddIPPPrinterWindow		1 台のプリンターが見つかりました:
+B6 (JIS)	IPPCapabilities		B6 (JIS)
+Labels	IPPCapabilities		ラベル紙
+Hagaki tray	IPPCapabilities		はがきトレイ
+Black: 	HalftoneView		黒: 
+Duplex	PWGCap		両面印刷
+Printer not responding.	GraphicsDriver		プリンターが応答しません。
+Tray	IPPCapabilities		トレイ
+Remaining page copies:  	StatusWindow		残りのページ部数:  
+Manual feed	IPPCapabilities		手差し
+Reverse order	JobSetupDlg		逆順に印刷
+Max	JobSetupDlg		最大
+Network search failed. Enter the printer URL below.	AddIPPPrinterWindow		ネットワーク検索に失敗しました。下にプリンターのURLを入力してください。
+4 x 6 in	IPPCapabilities		4 x 6 インチ
+Color	PWGCap		カラー
+Envelope Monarch	IPPCapabilities		モナーク封筒
+Blue: 	HalftoneView		青: 
+Disc tray	IPPCapabilities		ディスクトレイ
+Envelope You 6	IPPCapabilities		洋形6号封筒
+Envelope DL	IPPCapabilities		封筒 DL
+Margins	MarginView		余白
+Coated paper	IPPCapabilities		コート紙
+Search again	AddIPPPrinterWindow		再検索
+Lighter	JobSetupDlg		薄く
+Tabloid	IPPCapabilities		タブロイド
+Oufuku hagaki	IPPCapabilities		往復はがき
+Envelope #9	IPPCapabilities		封筒 #9
+Bypass tray	IPPCapabilities		手差しトレイ
+Cancel	AddPrinterDlg		キャンセル
+Protocol classes:	AddPrinterDlg		プロトコルクラス:
+5 x 8 in	IPPCapabilities		5 x 8 インチ
+8 x 10 in	IPPCapabilities		8 x 10 インチ
+Show preview before printing	JobSetupDlg		プレビューを表示する
+OK	JobSetupDlg		OK
+Draft	PWGCap		ドラフト
+Roll	IPPCapabilities		ロール
+2L (127 x 178 mm)	IPPCapabilities		2L判 (127 x 178 mm)
+Short edge	PWGCap		短辺
+Print all Pages	JobSetupDlg		すべてのページを印刷
+5 x 7 in	IPPCapabilities		5 x 7 インチ
+Even-numbered pages	JobSetupDlg		偶数ページ

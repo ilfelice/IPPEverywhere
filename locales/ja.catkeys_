@@ -1,0 +1,179 @@
+1	Japanese	application/x-vnd.ipp-everywhere	2213424400
+Rear tray	IPPCapabilities		Rear tray
+Business plain paper	IPPCapabilities		Business plain paper
+Print status	StatusWindow		Print status
+Duplex	JobSetupDlg		Duplex
+Photo paper (matte)	IPPCapabilities		Photo paper (matte)
+Envelope C6	IPPCapabilities		Envelope C6
+Letterhead	IPPCapabilities		Letterhead
+Resolution:	PageSetupDlg		解像度:
+Long edge	PWGCap		Long edge
+Executive	IPPCapabilities		Executive
+Collate	JobSetupDlg		Collate
+Quality	JobSetupDlg		Quality
+Hide status	StatusWindow		Hide status
+Automatic	IPPCapabilities		Automatic
+Page:  	StatusWindow		ページ:  
+Main tray	IPPCapabilities		Main tray
+L (89 x 127 mm)	IPPCapabilities		L (89 x 127 mm)
+Cancel	AddIPPPrinterWindow		キャンセル
+Envelope Chou 4	IPPCapabilities		Envelope Chou 4
+Envelope C5	IPPCapabilities		Envelope C5
+Min	JobSetupDlg		Min
+OS  Version 	AboutBox		OS  Version 
+B5 (JIS)	IPPCapabilities		B5 (JIS)
+Portrait	PageSetupDlg		Portrait
+B5 (ISO)	IPPCapabilities		B5 (ISO)
+Automatic	PWGCap		Automatic
+Envelope You 4	IPPCapabilities		Envelope You 4
+Left:	MarginView		Left:
+A6	IPPCapabilities		A6
+OK	PageSetupDlg		OK
+Please select a printer or enter its URL.	AddIPPPrinterWindow		Please select a printer or enter its URL.
+Top:	MarginView		Top:
+High	PWGCap		High
+Top tray	IPPCapabilities		Top tray
+Print selected Pages:	JobSetupDlg		Print selected Pages:
+Main roll	IPPCapabilities		Main roll
+Units:	MarginView		Units:
+Middle tray	IPPCapabilities		Middle tray
+Lightweight paper	IPPCapabilities		Lightweight paper
+Photo paper (glossy)	IPPCapabilities		Photo paper (glossy)
+Add printer	AddPrinterDlg		Add printer
+Page: 	StatusWindow		Page: 
+Heavyweight paper	IPPCapabilities		Heavyweight paper
+Hagaki (postcard)	IPPCapabilities		Hagaki (postcard)
+Add IPP printer	AddIPPPrinterWindow		Add IPP printer
+%d dpi	PWGCap		%d dpi
+Business card (matte)	IPPCapabilities		Business card (matte)
+Paper setup	PageSetupDlg		用紙設定
+OK	AddPrinterDlg		OK
+Normal	PWGCap		Normal
+Envelope Chou 3	IPPCapabilities		Envelope Chou 3
+Landscape	PageSetupDlg		Landscape
+Prepunched paper	IPPCapabilities		Prepunched paper
+Job cancelled	StatusWindow		Job cancelled
+Ink usage	JobSetupDlg		Ink usage
+Number of copies:	JobSetupDlg		Number of copies:
+Cancel	PageSetupDlg		キャンセル
+Orientation:	PageSetupDlg		Orientation:
+Scale [%]:	PageSetupDlg		Scale [%]:
+Large capacity tray	IPPCapabilities		Large capacity tray
+Envelope You 3	IPPCapabilities		Envelope You 3
+OK	PWGDriver		OK
+Bottom tray	IPPCapabilities		Bottom tray
+A5	IPPCapabilities		A5
+Photo paper	IPPCapabilities		Photo paper
+Hi-Vision (101.6 x 180.6 mm)	IPPCapabilities		Hi-Vision (101.6 x 180.6 mm)
+Darker	JobSetupDlg		Darker
+Envelope feeder	IPPCapabilities		Envelope feeder
+All pages	JobSetupDlg		All pages
+Envelope Kaku 3	IPPCapabilities		Envelope Kaku 3
+Pages per sheet:	JobSetupDlg		Pages per sheet:
+Description:	AddPrinterDlg		Description:
+Preprinted paper	IPPCapabilities		Preprinted paper
+Hagaki	IPPCapabilities		はがき
+To:	JobSetupDlg		To:
+Square photo (127 x 127 mm)	IPPCapabilities		Square photo (127 x 127 mm)
+Photo paper (semi-gloss)	IPPCapabilities		Photo paper (semi-gloss)
+Cancel	StatusWindow		キャンセル
+inch	MarginView		インチ
+Dot Pattern:	JobSetupDlg		Dot Pattern:
+Envelope Chou 2	IPPCapabilities		Envelope Chou 2
+Could not search for printers.	AddIPPPrinterWindow		Could not search for printers.
+OK	GraphicsDriver		OK
+Plain paper	IPPCapabilities		Plain paper
+Gamma	JobSetupDlg		Gamma
+Paper source:	JobSetupDlg		Paper source:
+Photo paper (high gloss)	IPPCapabilities		Photo paper (high gloss)
+Odd-numbered pages	JobSetupDlg		Odd-numbered pages
+Cardstock	IPPCapabilities		Cardstock
+Paper size:	PageSetupDlg		用紙サイズ:
+OK	AddIPPPrinterWindow		OK
+A4	IPPCapabilities		A4
+Quality	PWGCap		Quality
+Letter	IPPCapabilities		Letter
+Envelope Kaku 2	IPPCapabilities		Envelope Kaku 2
+Alternate tray	IPPCapabilities		Alternate tray
+B4 (JIS)	IPPCapabilities		B4 (JIS)
+B4 (ISO)	IPPCapabilities		B4 (ISO)
+Envelope	IPPCapabilities		Envelope
+No IPP printers found. Enter the printer URL below.	AddIPPPrinterWindow		No IPP printers found. Enter the printer URL below.
+Simplex	PWGCap		Simplex
+Cancel	JobSetupDlg		キャンセル
+Photo tray	IPPCapabilities		Photo tray
+Scale to fit page	PageSetupDlg		Scale to fit page
+Statement	IPPCapabilities		Statement
+Hagaki (glossy)	IPPCapabilities		はがき (glossy)
+Color:	JobSetupDlg		Color:
+Photo paper (satin)	IPPCapabilities		Photo paper (satin)
+cm	MarginView		cm
+Grayscale	PWGCap		Grayscale
+Envelope #10	IPPCapabilities		Envelope #10
+Print job setup	JobSetupDlg		Print job setup
+Transparency	IPPCapabilities		Transparency
+Hagaki (address side)	IPPCapabilities		Hagaki (address side)
+Right:	MarginView		右:
+Page selection	JobSetupDlg		Page selection
+Envelope You 1	IPPCapabilities		Envelope You 1
+Media type	PWGCap		Media type
+Legal	IPPCapabilities		Legal
+Alternate roll	IPPCapabilities		Alternate roll
+Booklet	PWGCap		Booklet
+A3	IPPCapabilities		A3
+Remaining document copies:  	StatusWindow		Remaining document copies:  
+points	MarginView		ポイント
+Duplex binding	PWGCap		Duplex binding
+Bottom:	MarginView		下:
+Fine paper	IPPCapabilities		Fine paper
+Green: 	HalftoneView		Green: 
+Printer URL:	AddIPPPrinterWindow		Printer URL:
+Red: 	HalftoneView		Red: 
+Ledger	IPPCapabilities		Ledger
+Found %count% printers:	AddIPPPrinterWindow		Found %count% printers:
+From:	JobSetupDlg		From:
+3 x 5 in	IPPCapabilities		3 x 5 in
+Searching for printers…	AddIPPPrinterWindow		プリンター検索中…
+Page range	JobSetupDlg		Page range
+Inkjet paper	IPPCapabilities		Inkjet paper
+Found 1 printer:	AddIPPPrinterWindow		Found 1 printer:
+B6 (JIS)	IPPCapabilities		B6 (JIS)
+Labels	IPPCapabilities		Labels
+Hagaki tray	IPPCapabilities		Hagaki tray
+Black: 	HalftoneView		Black: 
+Duplex	PWGCap		Duplex
+Printer not responding.	GraphicsDriver		Printer not responding.
+Tray	IPPCapabilities		トレイ
+Remaining page copies:  	StatusWindow		Remaining page copies:  
+Manual feed	IPPCapabilities		Manual feed
+Reverse order	JobSetupDlg		Reverse order
+Max	JobSetupDlg		Max
+Network search failed. Enter the printer URL below.	AddIPPPrinterWindow		Network search failed. Enter the printer URL below.
+4 x 6 in	IPPCapabilities		4 x 6 in
+Color	PWGCap		カラー
+Envelope Monarch	IPPCapabilities		Envelope Monarch
+Blue: 	HalftoneView		Blue: 
+Disc tray	IPPCapabilities		Disc tray
+Envelope You 6	IPPCapabilities		Envelope You 6
+Envelope DL	IPPCapabilities		Envelope DL
+Margins	MarginView		余白
+Coated paper	IPPCapabilities		Coated paper
+Search again	AddIPPPrinterWindow		Search again
+Lighter	JobSetupDlg		Lighter
+Tabloid	IPPCapabilities		Tabloid
+Oufuku hagaki	IPPCapabilities		Oufuku hagaki
+Envelope #9	IPPCapabilities		Envelope #9
+Bypass tray	IPPCapabilities		Bypass tray
+Cancel	AddPrinterDlg		キャンセル
+Protocol classes:	AddPrinterDlg		Protocol classes:
+5 x 8 in	IPPCapabilities		5 x 8 in
+8 x 10 in	IPPCapabilities		8 x 10 in
+Show preview before printing	JobSetupDlg		プレビューを表示する
+OK	JobSetupDlg		OK
+Draft	PWGCap		Draft
+Roll	IPPCapabilities		Roll
+2L (127 x 178 mm)	IPPCapabilities		2L (127 x 178 mm)
+Short edge	PWGCap		Short edge
+Print all Pages	JobSetupDlg		Print all Pages
+5 x 7 in	IPPCapabilities		5 x 7 in
+Even-numbered pages	JobSetupDlg		Even-numbered pages
