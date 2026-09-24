@@ -32,6 +32,14 @@ DEVEL_DIRECTORY := \
 	$(shell findpaths -r "makefile_engine" B_FIND_PATH_DEVELOP_DIRECTORY)
 include $(DEVEL_DIRECTORY)/etc/makefile-engine
 
+## IPPUSB.cpp lives in the parent directory. Listing it as ../IPPUSB.cpp
+## makes the engine add ".." to VPATH, and then make finds the *driver's*
+## object files (../objects.*/DbgMsg.o, IPPUSB.o) instead of building ours.
+## So VPATH is cleared again and the parent file gets an explicit rule.
+VPATH :=
+$(OBJ_DIR)/IPPUSB.o : ../IPPUSB.cpp ../IPPUSB.h
+	$(CC) -c $< $(INCLUDES) $(CFLAGS) -o "$@"
+
 ## Installed under a distinct name so it never clashes with the system IPP
 install-transport: $(TARGET)
 	mkdir -p "$(HOME)/config/non-packaged/add-ons/Print/transport"
