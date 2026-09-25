@@ -1,0 +1,36 @@
+name			ipp_everywhere
+version			@VERSION@-1
+architecture	@ARCH@
+summary			"IPP Everywhere printer driver and IPP transport for Haiku"
+description		"Prints to IPP Everywhere / AirPrint printers, over the network
+or over USB (IPP-USB), by sending PWG Raster over IPP. The dialogs are
+built from what the printer reports. Includes a corrected IPP transport
+(the one shipped with Haiku does not work on 64 bit).
+
+Tested with the Epson EW-M630T series. Add a printer with driver
+\"IPP Everywhere\" and transport \"IPP (fixed)\"; the printer is then
+picked from a list of those found on the network and on USB."
+packager		"@PACKAGER@"
+vendor			"ilfelice"
+copyrights {
+	"2026 ilfelice and contributors"
+	"1999-2000 Y.Takagi"
+	"2003-2010 Michael Pfeiffer"
+}
+licenses {
+	"MIT"
+}
+
+provides {
+	ipp_everywhere = @VERSION@
+	print_driver:ipp_everywhere = @VERSION@
+	print_transport:ipp_fixed = @VERSION@
+}
+
+requires {
+	haiku
+}
+
+urls {
+	"https://github.com/ilfelice/IPPEverywhere"
+}
