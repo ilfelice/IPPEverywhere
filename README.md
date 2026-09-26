@@ -1,18 +1,16 @@
 # IPP Everywhere printer driver for Haiku
 
-Prints to any IPP Everywhere / AirPrint printer by sending PWG Raster
-over IPP, on the network or over USB (IPP-USB). Written for and tested
-with the Epson EW-M630T series.
+Prints to any IPP Everywhere / AirPrint printer by sending PWG Raster over IPP, on the network or over USB (IPP-USB).
 
-The driver is built on Haiku's libprint framework, so it offers the
-standard Page Setup dialog (paper size, orientation, resolution, margins)
-and Print dialog (copies, page range, duplex, color), plus media type,
-quality and duplex binding edge. What the dialogs offer comes from the
-printer itself: the driver asks it (IPP Get-Printer-Attributes) when it
-is added and refreshes the answer automatically.
+The driver is built on Haiku's libprint framework, so it offers the standard Page Setup dialog (paper size, orientation, resolution, margins) and Print dialog (copies, page range, duplex, color), plus media type,
+quality and duplex binding edge. What the dialogs offer comes from the printer itself: the driver asks it (IPP Get-Printer-Attributes) when it is added and refreshes the answer automatically.
 
-It needs the fixed IPP transport in `IPPTransport/`; Haiku's bundled one
-does not work on x86_64. See `NOTES.md` for the details and the design.
+It needs the fixed IPP transport in `IPPTransport/`; Haiku's bundled one does not work on x86_64. See `NOTES.md` for the details and the design.
+
+## Printers confirmed working
+
+- Epson EW-M630TW (both USB and network connection)
+- Epson ET-4956 using wifi (thank you phoudoin!)
 
 ## Build and install
 
