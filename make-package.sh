@@ -12,11 +12,14 @@ if [ -z "$PACKAGER" ]; then
 	read PACKAGER
 fi
 
+# Always build from scratch: sources delivered by zip may carry older
+# timestamps than the last build, and make would then reuse stale objects.
 echo "== building the driver"
+make clean >/dev/null
 make -j4
 make bindcatalogs 2>/dev/null || true
 echo "== building the transport"
-( cd IPPTransport && make -j4 )
+( cd IPPTransport && make clean >/dev/null && make -j4 )
 
 DRIVER="$(ls objects.*/IPP_Everywhere | head -1)"
 TRANSPORT="$(ls IPPTransport/objects.*/IPP | head -1)"

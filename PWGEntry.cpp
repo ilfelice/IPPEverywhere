@@ -24,6 +24,9 @@
 static const char* kTransportAttribute = "transport";
 static const char* kTransportAddressAttribute = "transport_address";
 
+// the only transport this driver is used with (see AddPrinter)
+static const char* kSupportedTransport = "IPP (network or USB)";
+
 
 class PWGPrinterDriver : public PrinterDriver {
 public:
@@ -80,26 +83,24 @@ public:
 		if (node.InitCheck() != B_OK)
 			return printerName;
 
+		// The driver only works with its own transport; anything else
+		// (Haiku's raw USB/serial/LPR transports, its stock IPP transport
+		// that is broken on 64 bit) would just cause support questions.
 		BString transport;
 		node.ReadAttrString(kTransportAttribute, &transport);
-		if (transport.IFindFirst("IPP") < 0) {
-			// Any other transport sends the raster down a raw channel
-			// (USB Port: the printer's classic ESC/P or PCL interface),
-			// which prints garbage on most printers. Warn, don't forbid.
-			BString text(B_TRANSLATE("This driver sends PWG Raster, which "
-				"printers accept over IPP only. The transport \"%transport%\" "
-				"sends the data straight to the printer, which will most "
-				"likely print pages of garbage.\n\nFor USB printers choose "
-				"the \"IPP (network or USB)\" transport instead: it supports IPP over "
-				"USB and lists the printers plugged in."));
+		if (transport != kSupportedTransport) {
+			BString text(B_TRANSLATE("The IPP Everywhere driver was not "
+				"designed to work with the transport you selected "
+				"(\"%transport%\").\n\nPlease add the printer again and "
+				"choose the \"IPP (network or USB)\" transport, which works "
+				"with both network and USB printers."));
 			text.ReplaceFirst("%transport%", transport);
 			BAlert* alert = new BAlert("", text.String(),
-				B_TRANSLATE("Cancel"), B_TRANSLATE("Use anyway"), NULL,
-				B_WIDTH_AS_USUAL, B_WARNING_ALERT);
+				B_TRANSLATE("Close"), NULL, NULL, B_WIDTH_AS_USUAL,
+				B_WARNING_ALERT);
 			alert->SetShortcut(0, B_ESCAPE);
-			if (alert->Go() == 0)
-				return NULL;			// print_server removes the printer
-			return printerName;
+			alert->Go();
+			return NULL;			// print_server removes the printer
 		}
 
 		BString currentURL;

@@ -30,6 +30,7 @@ public:
 private:
 			void				_StartSearch();
 			void				_ShowResults(BMessage* message);
+			void				_UpdateAddButton();
 	static	int32				_SearchThread(void* data);
 
 			BString*			fResultURL;
@@ -39,6 +40,7 @@ private:
 			BTextControl*		fURL;
 			BButton*			fOKButton;
 			thread_id			fSearchThread;
+			bool				fURLFromList;
 };
 
 

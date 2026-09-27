@@ -57,7 +57,8 @@ AddIPPPrinterWindow::AddIPPPrinterWindow(const char* currentURL,
 		B_NOT_MINIMIZABLE | B_NOT_ZOOMABLE | B_ASYNCHRONOUS_CONTROLS
 			| B_AUTO_UPDATE_SIZE_LIMITS),
 	fResultURL(resultURL),
-	fSearchThread(-1)
+	fSearchThread(-1),
+	fURLFromList(false)
 {
 	SetResult(B_ERROR);
 
@@ -78,7 +79,9 @@ AddIPPPrinterWindow::AddIPPPrinterWindow(const char* currentURL,
 		NULL);
 	fURL->SetModificationMessage(new BMessage(kMsgURLChanged));
 
-	fOKButton = new BButton("ok", B_TRANSLATE("OK"), new BMessage(kMsgOK));
+	fOKButton = new BButton("ok", B_TRANSLATE("Add printer"),
+		new BMessage(kMsgOK));
+	fOKButton->SetEnabled(false);
 	BButton* cancelButton = new BButton("cancel", B_TRANSLATE("Cancel"),
 		new BMessage(kMsgCancel));
 
@@ -109,6 +112,13 @@ AddIPPPrinterWindow::_StartSearch()
 		return;
 
 	fList->MakeEmpty();
+	// a URL that came from a list selection goes with the list; one the
+	// user typed stays
+	if (fURLFromList) {
+		fURL->SetText("ipp://");
+		fURLFromList = false;
+	}
+	_UpdateAddButton();
 	fStatus->SetText(B_TRANSLATE("Searching for printers" B_UTF8_ELLIPSIS));
 	fSearchButton->SetEnabled(false);
 
@@ -199,6 +209,19 @@ AddIPPPrinterWindow::_ShowResults(BMessage* message)
 }
 
 
+// "Add printer" is enabled once a printer is selected in the list or a
+// URL has been typed in (for printers the search did not find).
+void
+AddIPPPrinterWindow::_UpdateAddButton()
+{
+	BString url(fURL->Text());
+	url.Trim();
+	bool haveURL = url.Length() > 0 && url != "ipp://"
+		&& url != "ipps://";
+	fOKButton->SetEnabled(fList->CurrentSelection() >= 0 || haveURL);
+}
+
+
 void
 AddIPPPrinterWindow::MessageReceived(BMessage* message)
 {
@@ -216,12 +239,18 @@ AddIPPPrinterWindow::MessageReceived(BMessage* message)
 			int32 index = fList->CurrentSelection();
 			PrinterItem* item = index < 0 ? NULL
 				: dynamic_cast<PrinterItem*>(fList->ItemAt(index));
-			if (item != NULL)
+			if (item != NULL) {
 				fURL->SetText(item->URL());
+				fURLFromList = true;
+			}
+			_UpdateAddButton();
 			break;
 		}
 
 		case kMsgURLChanged:
+			// typing in the field makes it the user's own
+			fURLFromList = false;
+			_UpdateAddButton();
 			break;
 
 		case kMsgOK:

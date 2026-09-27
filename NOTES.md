@@ -71,8 +71,9 @@ Installed locations (`/boot/home/config/non-packaged/add-ons/Print/`):
 - `transport/IPP (network or USB)` (transport; was "IPP (fixed)" until
   2026-09-27: a tester picked Haiku's "USB Port" and got garbage, so the
   name now says what it is for. Printers added under the old name have to
-  be removed and added again. The driver also warns when paired with a
-  transport other than an IPP one.)
+  be removed and added again. The driver refuses any other transport
+  in AddPrinter(): a dialog explains, and returning NULL makes
+  print_server delete the printer again.)
 
 Both are user add-ons; the system ones are untouched.
 

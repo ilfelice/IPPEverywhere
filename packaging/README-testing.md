@@ -23,9 +23,9 @@ must be removed and added again.
 
 1. Preferences > Printers > Add.
 2. Give it a name. Printer type: "IPP Everywhere". Connected to:
-   "IPP (network or USB)", for USB printers too. Haiku's "USB Port" transport
-   sends the data down the printer's raw channel and prints garbage;
-   the driver warns if you pick it.
+   "IPP (network or USB)", for USB printers too. The driver refuses to
+   be added with any other transport (Haiku's "USB Port", for one, would
+   print garbage).
 3. A dialog lists the printers found on your network and on USB. Pick
    yours and click OK. If it is not listed, type its URL in the field;
    for most printers it is `ipp://<printer IP address>:631/ipp/print`.
