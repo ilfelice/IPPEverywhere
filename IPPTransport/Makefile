@@ -43,5 +43,5 @@ $(OBJ_DIR)/IPPUSB.o : ../IPPUSB.cpp ../IPPUSB.h
 ## Installed under a distinct name so it never clashes with the system IPP
 install-transport: $(TARGET)
 	mkdir -p "$(HOME)/config/non-packaged/add-ons/Print/transport"
-	cp "$(TARGET)" "$(HOME)/config/non-packaged/add-ons/Print/transport/IPP (fixed)"
+	cp "$(TARGET)" "$(HOME)/config/non-packaged/add-ons/Print/transport/IPP (network or USB)"
 	@echo "Installed. Run 'hey print_server quit' or reboot."

@@ -1,4 +1,4 @@
-# Fixed IPP transport for Haiku (x86_64)
+# IPP (network or USB) transport for Haiku
 
 Haiku's bundled IPP transport writes the IPP request-id as a C `long`,
 which is 8 bytes on x86_64 instead of the 4 bytes IPP requires. Every
@@ -10,4 +10,4 @@ the unused CUPS-browsing printer roster removed.
     make -j4
     make install-transport
 
-The transport then appears as "IPP (fixed)" when adding a printer.
+The transport then appears as "IPP (network or USB)" when adding a printer.

@@ -1,7 +1,7 @@
 # IPP Everywhere driver for Haiku: project notes
 
-Status as of 2026-09-24 (discovery, capability polling, scale to fit,
-localization, IPP-USB included). Target printer: Epson EW-M630T series (EW-M630TW),
+Status as of 2026-09-25 (discovery, capability polling, scale to fit,
+localization, IPP-USB, packaging included). Target printer: Epson EW-M630T series (EW-M630TW),
 Haiku R1~beta6+development hrev60082, x86_64.
 
 ## 1. Goal and approach
@@ -54,13 +54,25 @@ IPPEverywhere/
   libprint/           Haiku's libprint framework, copied from the Haiku
                       source tree (MIT). Not shipped in haiku_devel, so it
                       is compiled into the add-on. One fix applied (5.2).
-  IPPTransport/       fixed build of Haiku's IPP transport (see 5.1)
+  IPPTransport/       the "IPP (network or USB)" transport: Haiku's IPP
+                      transport fixed (see 5.1) plus IPP-USB
+  IPPUSB.cpp/.h       IPP over USB, compiled into both add-ons
+  locales/            translation catalogs (en.catkeys is the master)
+  packaging/          PackageInfo template and the testers' README
+  make-package.sh     builds both add-ons and creates the .hpkg
+  LICENSE             MIT, covering our code and the bundled libprint
 ```
+
+Repository: https://github.com/ilfelice/IPPEverywhere
 
 Installed locations (`/boot/home/config/non-packaged/add-ons/Print/`):
 
 - `IPP Everywhere` (driver)
-- `transport/IPP (fixed)` (transport)
+- `transport/IPP (network or USB)` (transport; was "IPP (fixed)" until
+  2026-09-27: a tester picked Haiku's "USB Port" and got garbage, so the
+  name now says what it is for. Printers added under the old name have to
+  be removed and added again. The driver also warns when paired with a
+  transport other than an IPP one.)
 
 Both are user add-ons; the system ones are untouched.
 
@@ -254,10 +266,33 @@ over which the very same HTTP/IPP exchange as on the network runs.
   on Linux does.
 - `IPPClient::GetPrinterAttributes()` and the transport's Print-Job both
   branch on `IPPUSB::IsUSBURL()`; everything above the byte pipe is the
-  same code. So "IPP (fixed)" is the transport for USB as well.
+  same code. So "IPP (network or USB)" is the transport for USB as well.
 
 Caveat: the USB Kit's bulk transfers have no timeout, so a printer that
 never answers would block the job.
+
+### 4.7 Packaging
+
+`make-package.sh [version]` builds the driver and the transport, binds the
+catalogs, stages `add-ons/Print/IPP Everywhere` and
+`add-ons/Print/transport/IPP (network or USB)` plus the testers' README and the
+licence under `documentation/packages/ipp_everywhere/`, fills in
+`packaging/PackageInfo` (version, architecture, packager) and runs
+Haiku's `package create`. The result is `ipp_everywhere-<ver>-1-<arch>.hpkg`,
+installable with `pkgman install` or by dropping it in
+`/boot/home/config/packages`. Copies installed by `make install-driver`
+and `make install-transport` under `non-packaged` shadow the packaged
+ones and must be removed first. Only `haiku` is required: Haiku's system
+libraries are not individual provides, so `lib:libbe`-style requirements
+never resolve.
+
+Two build pitfalls, both in `IPPTransport/Makefile`: `install` is a
+target the makefile engine already defines (ours are `install-driver` /
+`install-transport`), and listing `../IPPUSB.cpp` in SRCS puts `..` in
+VPATH, whereupon make finds the *driver's* object files
+(`../objects.*/DbgMsg.o`, `IPPUSB.o`) and skips compiling the transport's
+own; VPATH is cleared again after the engine is included and the parent
+file has an explicit rule.
 
 ## 5. Haiku bugs found on the way
 
@@ -362,7 +397,9 @@ Not working: Pe (fails silently; not investigated yet).
 - Custom paper sizes from the printer's `custom_min`/`custom_max` range.
 - Make transport failures mark the job as failed instead of leaving it
   in "Processing".
-- Package both add-ons as an .hpkg; submit to HaikuPorts.
+- Submit to HaikuPorts (packaging itself is done, 4.7).
+- Prepare patches for the Haiku bugs in section 5 for the RenkuOS fork
+  (Haiku itself does not accept AI-assisted contributions).
 - The Haiku issues in section 5 are documented here only; upstream
   reports are not planned.
 
@@ -377,5 +414,5 @@ hey print_server quit
 ```
 
 Then Preferences > Printers > Add: driver "IPP Everywhere", transport
-"IPP (fixed)". A dialog lists the IPP printers found on the network;
+"IPP (network or USB)". A dialog lists the IPP printers found on the network;
 pick one or type the URL.

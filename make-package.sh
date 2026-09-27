@@ -29,7 +29,7 @@ rm -rf package
 mkdir -p "$STAGE/add-ons/Print/transport"
 mkdir -p "$STAGE/documentation/packages/ipp_everywhere"
 cp "$DRIVER" "$STAGE/add-ons/Print/IPP Everywhere"
-cp "$TRANSPORT" "$STAGE/add-ons/Print/transport/IPP (fixed)"
+cp "$TRANSPORT" "$STAGE/add-ons/Print/transport/IPP (network or USB)"
 cp packaging/README-testing.md "$STAGE/documentation/packages/ipp_everywhere/README.md"
 [ -f LICENSE ] && cp LICENSE "$STAGE/documentation/packages/ipp_everywhere/"
 sed -e "s/@VERSION@/$VERSION/g" -e "s/@ARCH@/$ARCH/g" \

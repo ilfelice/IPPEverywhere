@@ -11,8 +11,13 @@
 #include "PrinterData.h"
 #include "PrinterDriver.h"
 
+#include <Alert.h>
+#include <Catalog.h>
 #include <Node.h>
 #include <String.h>
+
+#undef B_TRANSLATION_CONTEXT
+#define B_TRANSLATION_CONTEXT "PWGEntry"
 
 
 // attribute names used by print_server and the IPP transport
@@ -77,8 +82,25 @@ public:
 
 		BString transport;
 		node.ReadAttrString(kTransportAttribute, &transport);
-		if (transport.IFindFirst("IPP") < 0)
-			return printerName;		// e.g. USB: nothing to configure
+		if (transport.IFindFirst("IPP") < 0) {
+			// Any other transport sends the raster down a raw channel
+			// (USB Port: the printer's classic ESC/P or PCL interface),
+			// which prints garbage on most printers. Warn, don't forbid.
+			BString text(B_TRANSLATE("This driver sends PWG Raster, which "
+				"printers accept over IPP only. The transport \"%transport%\" "
+				"sends the data straight to the printer, which will most "
+				"likely print pages of garbage.\n\nFor USB printers choose "
+				"the \"IPP (network or USB)\" transport instead: it supports IPP over "
+				"USB and lists the printers plugged in."));
+			text.ReplaceFirst("%transport%", transport);
+			BAlert* alert = new BAlert("", text.String(),
+				B_TRANSLATE("Cancel"), B_TRANSLATE("Use anyway"), NULL,
+				B_WIDTH_AS_USUAL, B_WARNING_ALERT);
+			alert->SetShortcut(0, B_ESCAPE);
+			if (alert->Go() == 0)
+				return NULL;			// print_server removes the printer
+			return printerName;
+		}
 
 		BString currentURL;
 		node.ReadAttrString(kTransportAddressAttribute, &currentURL);

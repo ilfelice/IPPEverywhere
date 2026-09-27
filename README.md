@@ -1,16 +1,18 @@
 # IPP Everywhere printer driver for Haiku
 
-Prints to any IPP Everywhere / AirPrint printer by sending PWG Raster over IPP, on the network or over USB (IPP-USB).
+Prints to any IPP Everywhere / AirPrint printer by sending PWG Raster
+over IPP, on the network or over USB (IPP-USB). Written for and tested
+with the Epson EW-M630T series.
 
-The driver is built on Haiku's libprint framework, so it offers the standard Page Setup dialog (paper size, orientation, resolution, margins) and Print dialog (copies, page range, duplex, color), plus media type,
-quality and duplex binding edge. What the dialogs offer comes from the printer itself: the driver asks it (IPP Get-Printer-Attributes) when it is added and refreshes the answer automatically.
+The driver is built on Haiku's libprint framework, so it offers the
+standard Page Setup dialog (paper size, orientation, resolution, margins)
+and Print dialog (copies, page range, duplex, color), plus media type,
+quality and duplex binding edge. What the dialogs offer comes from the
+printer itself: the driver asks it (IPP Get-Printer-Attributes) when it
+is added and refreshes the answer automatically.
 
-It needs the fixed IPP transport in `IPPTransport/`; Haiku's bundled one does not work on x86_64. See `NOTES.md` for the details and the design.
-
-## Printers confirmed working
-
-- Epson EW-M630TW (both USB and network connection)
-- Epson ET-4956 using wifi (thank you phoudoin!)
+It needs the fixed IPP transport in `IPPTransport/`; Haiku's bundled one
+does not work on x86_64. See `NOTES.md` for the details and the design.
 
 ## Build and install
 
@@ -28,11 +30,27 @@ The system add-ons are not touched.
 ## Add the printer
 
 1. Preferences > Printers > Add.
-2. Name it, choose driver "IPP Everywhere" and transport "IPP (fixed)"
+2. Name it, choose driver "IPP Everywhere" and transport "IPP (network or USB)"
    (for USB as well).
 3. A dialog lists the IPP printers found on your network and the ones
    plugged in by USB. Pick yours, or type the URL by hand (for the
    EW-M630T: `ipp://<printer address>:631/ipp/print`).
+
+## Package
+
+    ./make-package.sh 0.1
+
+builds both add-ons and creates `ipp_everywhere-0.1-1-x86_64.hpkg`. To
+install it, first remove any copies installed by `make install-driver` /
+`make install-transport` (they would shadow the packaged ones):
+
+    rm "/boot/home/config/non-packaged/add-ons/Print/IPP Everywhere"
+    rm "/boot/home/config/non-packaged/add-ons/Print/transport/IPP (network or USB)"
+    pkgman install ./ipp_everywhere-0.1-1-x86_64.hpkg
+    hey print_server quit
+
+Printers already added keep working: the driver and transport keep their
+names. `pkgman uninstall ipp_everywhere` removes it again.
 
 ## Translating
 

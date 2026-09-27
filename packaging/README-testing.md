@@ -1,7 +1,7 @@
 # IPP Everywhere for Haiku: test build
 
 This package adds a printer driver, "IPP Everywhere", and a transport,
-"IPP (fixed)", to Haiku. Together they print to any printer that supports
+"IPP (network or USB)", to Haiku. Together they print to any printer that supports
 IPP Everywhere or AirPrint, over the network or over USB. Most printers
 sold since about 2015 do; the printer's spec sheet or its network status
 page will say "AirPrint" or "IPP Everywhere".
@@ -15,11 +15,17 @@ what this test build is for.
    `pkgman install ipp_everywhere-<version>-<arch>.hpkg`.
 2. In Terminal, run `hey print_server quit` (or reboot).
 
+If you installed an earlier test build: the transport was renamed from
+"IPP (fixed)" to "IPP (network or USB)". Printers added with the old name
+must be removed and added again.
+
 ## Add the printer
 
 1. Preferences > Printers > Add.
 2. Give it a name. Printer type: "IPP Everywhere". Connected to:
-   "IPP (fixed)" (also for USB; do not use "USB Port").
+   "IPP (network or USB)", for USB printers too. Haiku's "USB Port" transport
+   sends the data down the printer's raw channel and prints garbage;
+   the driver warns if you pick it.
 3. A dialog lists the printers found on your network and on USB. Pick
    yours and click OK. If it is not listed, type its URL in the field;
    for most printers it is `ipp://<printer IP address>:631/ipp/print`.

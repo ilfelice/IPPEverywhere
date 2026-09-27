@@ -8,7 +8,7 @@ built from what the printer reports. Includes a corrected IPP transport
 (the one shipped with Haiku does not work on 64 bit).
 
 Tested with the Epson EW-M630T series. Add a printer with driver
-\"IPP Everywhere\" and transport \"IPP (fixed)\"; the printer is then
+\"IPP Everywhere\" and transport \"IPP (network or USB)\"; the printer is then
 picked from a list of those found on the network and on USB."
 packager		"@PACKAGER@"
 vendor			"ilfelice"
@@ -24,7 +24,7 @@ licenses {
 provides {
 	ipp_everywhere = @VERSION@
 	print_driver:ipp_everywhere = @VERSION@
-	print_transport:ipp_fixed = @VERSION@
+	print_transport:ipp_network_usb = @VERSION@
 }
 
 requires {
