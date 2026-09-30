@@ -9,13 +9,17 @@
 #include <Button.h>
 #include <LayoutBuilder.h>
 #include <ListView.h>
+#include <MenuField.h>
+#include <MenuItem.h>
 #include <Messenger.h>
+#include <PopUpMenu.h>
 #include <ScrollView.h>
 #include <StringItem.h>
 #include <StringView.h>
 #include <TextControl.h>
 #include <UTF8.h>
 
+#include "IPPClient.h"
 #include "IPPDiscovery.h"
 #include "IPPUSB.h"
 
@@ -31,6 +35,9 @@ static const uint32 kMsgSearch = 'srch';
 static const uint32 kMsgResults = 'rslt';
 static const uint32 kMsgSelected = 'selc';
 static const uint32 kMsgURLChanged = 'urlc';
+static const uint32 kMsgURLEntered = 'urle';
+static const uint32 kMsgFormats = 'frmt';
+static const uint32 kMsgFormatChosen = 'frmc';
 
 
 class PrinterItem : public BStringItem {
@@ -50,14 +57,16 @@ private:
 
 
 AddIPPPrinterWindow::AddIPPPrinterWindow(const char* currentURL,
-	BString* resultURL)
+	BString* resultURL, BString* resultFormat)
 	:
 	DialogWindow(BRect(100, 100, 500, 400), B_TRANSLATE("Add IPP printer"),
 		B_TITLED_WINDOW_LOOK, B_MODAL_APP_WINDOW_FEEL,
 		B_NOT_MINIMIZABLE | B_NOT_ZOOMABLE | B_ASYNCHRONOUS_CONTROLS
 			| B_AUTO_UPDATE_SIZE_LIMITS),
 	fResultURL(resultURL),
+	fResultFormat(resultFormat),
 	fSearchThread(-1),
+	fQueryThread(-1),
 	fURLFromList(false)
 {
 	SetResult(B_ERROR);
@@ -78,6 +87,24 @@ AddIPPPrinterWindow::AddIPPPrinterWindow(const char* currentURL,
 		currentURL != NULL && currentURL[0] != '\0' ? currentURL : "ipp://",
 		NULL);
 	fURL->SetModificationMessage(new BMessage(kMsgURLChanged));
+	fURL->SetMessage(new BMessage(kMsgURLEntered));	// Enter in the field
+
+	// Raster format: filled in once the selected printer has answered
+	BPopUpMenu* formatMenu = new BPopUpMenu("format");
+	fFormatAuto = new BMenuItem(B_TRANSLATE("Automatic"),
+		new BMessage(kMsgFormatChosen));
+	fFormatPWG = new BMenuItem(B_TRANSLATE("PWG Raster"),
+		new BMessage(kMsgFormatChosen));
+	fFormatURF = new BMenuItem(B_TRANSLATE("URF (Apple raster)"),
+		new BMessage(kMsgFormatChosen));
+	formatMenu->AddItem(fFormatAuto);
+	formatMenu->AddItem(fFormatPWG);
+	formatMenu->AddItem(fFormatURF);
+	fFormatAuto->SetMarked(true);
+	fFormatPWG->SetEnabled(false);
+	fFormatURF->SetEnabled(false);
+	fFormat = new BMenuField("formatField", B_TRANSLATE("Raster format:"),
+		formatMenu);
 
 	fOKButton = new BButton("ok", B_TRANSLATE("Add printer"),
 		new BMessage(kMsgOK));
@@ -94,6 +121,7 @@ AddIPPPrinterWindow::AddIPPPrinterWindow(const char* currentURL,
 			.Add(fSearchButton)
 		.End()
 		.Add(fURL)
+		.Add(fFormat)
 		.AddGroup(B_HORIZONTAL)
 			.AddGlue()
 			.Add(cancelButton)
@@ -242,10 +270,22 @@ AddIPPPrinterWindow::MessageReceived(BMessage* message)
 			if (item != NULL) {
 				fURL->SetText(item->URL());
 				fURLFromList = true;
+				_QueryFormats();
 			}
 			_UpdateAddButton();
 			break;
 		}
+
+		case kMsgURLEntered:
+			_QueryFormats();
+			break;
+
+		case kMsgFormats:
+			_ShowFormats(message);
+			break;
+
+		case kMsgFormatChosen:
+			break;
 
 		case kMsgURLChanged:
 			// typing in the field makes it the user's own
@@ -264,6 +304,12 @@ AddIPPPrinterWindow::MessageReceived(BMessage* message)
 			if (url.FindFirst("://") < 0)
 				url.Prepend("ipp://");
 			*fResultURL = url;
+			if (fFormatPWG->IsMarked())
+				*fResultFormat = "pwg-raster";
+			else if (fFormatURF->IsMarked())
+				*fResultFormat = "urf";
+			else
+				*fResultFormat = "auto";
 			SetResult(B_OK);
 			PostMessage(B_QUIT_REQUESTED);
 			break;
@@ -280,14 +326,92 @@ AddIPPPrinterWindow::MessageReceived(BMessage* message)
 }
 
 
+// Asks the printer at the current URL which raster formats it accepts
+// and enables the matching menu items when the answer arrives.
+void
+AddIPPPrinterWindow::_QueryFormats()
+{
+	BString url(fURL->Text());
+	url.Trim();
+	if (url.Length() == 0 || url == "ipp://" || url == fQueriedURL)
+		return;
+	if (fQueryThread >= 0) {
+		wait_for_thread(fQueryThread, NULL);
+		fQueryThread = -1;
+	}
+	fQueriedURL = url;
+	fFormatAuto->SetMarked(true);
+	fFormatPWG->SetEnabled(false);
+	fFormatURF->SetEnabled(false);
+
+	BMessage* request = new BMessage(kMsgFormats);
+	request->AddString("url", url);
+	request->AddMessenger("target", BMessenger(this));
+	fQueryThread = spawn_thread(_QueryThread, "IPP query",
+		B_NORMAL_PRIORITY, request);
+	if (fQueryThread >= 0)
+		resume_thread(fQueryThread);
+	else
+		delete request;
+}
+
+
+int32
+AddIPPPrinterWindow::_QueryThread(void* data)
+{
+	BMessage* message = (BMessage*)data;
+	BMessenger target;
+	message->FindMessenger("target", &target);
+	const char* url = message->GetString("url", "");
+
+	IPPAttributes attributes;
+	BString error;
+	bool answered = IPPClient::GetPrinterAttributes(url, attributes, error)
+		== B_OK;
+	message->AddBool("answered", answered);
+	message->AddBool("pwg", answered
+		&& attributes.Contains("document-format-supported", "image/pwg-raster"));
+	message->AddBool("urf", answered
+		&& attributes.Contains("document-format-supported", "image/urf"));
+	target.SendMessage(message);
+	delete message;
+	return 0;
+}
+
+
+void
+AddIPPPrinterWindow::_ShowFormats(BMessage* message)
+{
+	if (fQueryThread >= 0) {
+		wait_for_thread(fQueryThread, NULL);
+		fQueryThread = -1;
+	}
+	// ignore answers for a URL that is no longer the current one
+	if (fQueriedURL != message->GetString("url", ""))
+		return;
+	bool pwg = message->GetBool("pwg", false);
+	bool urf = message->GetBool("urf", false);
+	fFormatPWG->SetEnabled(pwg);
+	fFormatURF->SetEnabled(urf);
+	if (message->GetBool("answered", false) && !pwg && !urf) {
+		fStatus->SetText(B_TRANSLATE("This printer accepts neither PWG "
+			"Raster nor URF; the driver cannot print to it."));
+	}
+}
+
+
 bool
 AddIPPPrinterWindow::QuitRequested()
 {
-	// The add-on is unloaded after the window is gone; make sure the
-	// search thread is not still running our code by then.
+	// The add-on is unloaded after the window is gone; make sure no
+	// thread is still running our code by then.
 	if (fSearchThread >= 0) {
 		wait_for_thread(fSearchThread, NULL);
 		fSearchThread = -1;
+	}
+	if (fQueryThread >= 0) {
+		wait_for_thread(fQueryThread, NULL);
+		fQueryThread = -1;
 	}
 	return true;
 }

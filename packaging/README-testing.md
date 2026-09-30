@@ -52,8 +52,9 @@ client...) and check:
 
 - Photo paper, envelopes and other media types are selected in the Print
   dialog; whether the printer honours them depends on the printer.
-- Printers that only accept Apple's URF raster format, not PWG raster
-  (some older AirPrint models), are not supported yet.
+- Printers that only accept Apple's URF raster format (some older
+  AirPrint models) are supported in theory but untested; a report from
+  one of those would be especially welcome.
 - Pe fails to print (silently). Being looked at.
 - The Printers preferences may show the status of a printer as
   "No pending jobsNo pending jobs1 pending job...". That is a Haiku bug,

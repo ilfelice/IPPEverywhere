@@ -35,6 +35,8 @@ PWGDriver::PWGDriver(BMessage* message, PrinterData* printerData,
 	:
 	GraphicsDriver(message, printerData, printerCap),
 	fPageIndex(0),
+	fDocumentPages(0),
+	fFormat(PWGWriter::kPWGRaster),
 	fPageWidth(0),
 	fPageHeight(0),
 	fContentWidth(0),
@@ -223,9 +225,10 @@ PWGDriver::_WriteJobSummary()
 	BRect printable = job->GetPrintableRect();
 	char text[512];
 	snprintf(text, sizeof(text),
-		"pages %ld, nup %d, copies %d, collate %d, orientation %s, "
+		"format %s, pages %ld, nup %d, copies %d, collate %d, orientation %s, "
 		"style %d, paper %d, %dx%d dpi, scaling %g, fit %d, "
 		"paper rect %gx%g, physical %g,%g-%g,%g, printable %g,%g-%g,%g",
+		fFormat == PWGWriter::kURF ? "urf" : "pwg-raster",
 		(long)GetPageCount(), (int)job->GetNup(), (int)job->GetCopies(),
 		(int)job->GetCollate(),
 		job->GetOrientation() == JobData::kLandscape ? "landscape" : "portrait",
@@ -242,11 +245,44 @@ PWGDriver::_WriteJobSummary()
 bool
 PWGDriver::StartDocument()
 {
+	// PWG raster when the printer takes it, Apple's URF otherwise
+	const PWGCap* cap = _Cap();
+	bool pwg = cap == NULL || cap->Capabilities().pwgRaster;
+	bool urf = cap != NULL && cap->Capabilities().urf;
+	if (!pwg && !urf) {
+		BAlert* alert = new BAlert("", B_TRANSLATE("This printer accepts "
+			"neither PWG Raster nor URF, the two formats this driver can "
+			"produce. It cannot be used with the IPP Everywhere driver."),
+			B_TRANSLATE("OK"));
+		alert->SetFlags(alert->Flags() | B_CLOSE_ON_ESCAPE);
+		alert->Go();
+		return false;
+	}
+	fFormat = pwg ? PWGWriter::kPWGRaster : PWGWriter::kURF;
+
+	// a format chosen when the printer was added overrides the automatic
+	// choice, as long as the printer really accepts it
+	std::string path;
+	if (GetPrinterData()->GetPath(path)) {
+		BNode node(path.c_str());
+		BString chosen;
+		if (node.InitCheck() == B_OK
+			&& node.ReadAttrString("ipp-everywhere:format", &chosen) == B_OK) {
+			if (chosen == "urf" && urf)
+				fFormat = PWGWriter::kURF;
+			else if (chosen == "pwg-raster" && pwg)
+				fFormat = PWGWriter::kPWGRaster;
+		}
+	}
+	fDocument.clear();
+	fDocumentPages = 0;
+
 	try {
 		fPageIndex = 0;
 		_WriteJobSummary();
 		_WriteJobAttributes();
-		WriteSpoolData(PWGWriter::FileMagic(), PWGWriter::FileMagicSize());
+		if (fFormat == PWGWriter::kPWGRaster)
+			WriteSpoolData(PWGWriter::FileMagic(), PWGWriter::FileMagicSize());
 		return true;
 	} catch (TransportException& err) {
 		return false;
@@ -304,6 +340,7 @@ PWGDriver::StartPage(int page)
 	fPadY = margin;
 
 	PWGWriter::PageInfo info;
+	info.format = fFormat;
 	info.width = width;
 	info.height = height;
 	info.xres = xres;
@@ -426,7 +463,12 @@ PWGDriver::EndPage(int page)
 	try {
 		fPageBuffer.clear();
 		fWriter.EndPage(fPageBuffer);
-		WriteSpoolData(&fPageBuffer[0], fPageBuffer.size());
+		if (fFormat == PWGWriter::kURF) {
+			fDocument.insert(fDocument.end(), fPageBuffer.begin(),
+				fPageBuffer.end());
+			fDocumentPages++;
+		} else
+			WriteSpoolData(&fPageBuffer[0], fPageBuffer.size());
 		fPageIndex++;
 		return true;
 	} catch (TransportException& err) {
@@ -441,7 +483,23 @@ PWGDriver::EndPage(int page)
 bool
 PWGDriver::EndDocument(bool success)
 {
-	// PWG raster has no trailer; the transport sends the job when it is
-	// destroyed by libprint.
+	// PWG raster has no trailer. URF is written here in one go, with the
+	// page count in its file header. The transport sends the job when it
+	// is destroyed by libprint.
+	if (fFormat == PWGWriter::kURF && success && fDocumentPages > 0) {
+		try {
+			std::vector<uint8> header;
+			PWGWriter::URFFileHeader(fDocumentPages, header);
+			WriteSpoolData(&header[0], header.size());
+			WriteSpoolData(&fDocument[0], fDocument.size());
+		} catch (TransportException& err) {
+			BAlert* alert = new BAlert("", err.What(), B_TRANSLATE("OK"));
+			alert->SetFlags(alert->Flags() | B_CLOSE_ON_ESCAPE);
+			alert->Go();
+			return false;
+		}
+	}
+	fDocument.clear();
+	fDocumentPages = 0;
 	return true;
 }

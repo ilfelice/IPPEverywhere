@@ -24,6 +24,9 @@
 static const char* kTransportAttribute = "transport";
 static const char* kTransportAddressAttribute = "transport_address";
 
+// raster format chosen when the printer was added: auto, pwg-raster, urf
+static const char* kFormatAttribute = "ipp-everywhere:format";
+
 // the only transport this driver is used with (see AddPrinter)
 static const char* kSupportedTransport = "IPP (network or USB)";
 
@@ -107,12 +110,14 @@ public:
 		node.ReadAttrString(kTransportAddressAttribute, &currentURL);
 
 		BString url;
+		BString format;
 		AddIPPPrinterWindow* window = new AddIPPPrinterWindow(
-			currentURL.String(), &url);
+			currentURL.String(), &url, &format);
 		if (window->Go() != B_OK)
 			return NULL;			// cancelled: print_server removes the printer
 
 		node.WriteAttrString(kTransportAddressAttribute, &url);
+		node.WriteAttrString(kFormatAttribute, &format);
 
 		// Ask the printer what it can do, so the dialogs are right from
 		// the start. If it does not answer, generic defaults are used and

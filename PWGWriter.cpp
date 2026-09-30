@@ -41,6 +41,7 @@ static const size_t kOffsetPageSizeName = 1732;
 
 PWGWriter::PageInfo::PageInfo()
 	:
+	format(kPWGRaster),
 	width(0),
 	height(0),
 	xres(300),
@@ -139,7 +140,10 @@ PWGWriter::EndPage(std::vector<uint8>& output)
 			AddLine(&white[0]);
 	}
 
-	_WriteHeader(output);
+	if (fInfo.format == kURF)
+		_WriteURFHeader(output);
+	else
+		_WriteHeader(output);
 
 	bool reverse = fInfo.backSide && fInfo.reverseLines;
 	size_t count = fRuns.size();
@@ -267,4 +271,33 @@ PWGWriter::_WriteHeader(std::vector<uint8>& out) const
 	_PutU32(header, kOffsetPrintQuality, fInfo.quality);
 
 	memcpy(&out[base], &header[0], kHeaderSize);
+}
+
+
+// URF (Apple raster) page header, 32 bytes:
+//   0 bits per pixel, 1 color space (0 = gray, 1 = sRGB), 2 duplex
+//   (1 = none, 2 = short edge, 3 = long edge), 3 print quality,
+//   4-11 reserved, 12-15 width, 16-19 height, 20-23 dpi, 24-31 reserved
+void
+PWGWriter::_WriteURFHeader(std::vector<uint8>& out) const
+{
+	size_t base = out.size();
+	out.resize(base + 32, 0);
+	out[base + 0] = (uint8)(BytesPerPixel() * 8);
+	out[base + 1] = fInfo.colorSpace == kGray ? 0 : 1;
+	out[base + 2] = !fInfo.duplex ? 1 : (fInfo.tumble ? 2 : 3);
+	out[base + 3] = (uint8)fInfo.quality;
+	_PutU32(out, base + 12, fInfo.width);
+	_PutU32(out, base + 16, fInfo.height);
+	_PutU32(out, base + 20, fInfo.xres);
+}
+
+
+void
+PWGWriter::URFFileHeader(uint32 pageCount, std::vector<uint8>& out)
+{
+	size_t base = out.size();
+	out.resize(base + 12, 0);
+	memcpy(&out[base], "UNIRAST", 8);	// includes the terminating 0
+	_PutU32(out, base + 8, pageCount);
 }

@@ -20,7 +20,14 @@ public:
 		kRGB = 19		// srgb_8
 	};
 
+	enum Format {
+		kPWGRaster,		// image/pwg-raster
+		kURF			// image/urf (Apple raster), same line
+						// compression, different headers
+	};
+
 	struct PageInfo {
+		Format		format;
 		uint32		width;				// pixels
 		uint32		height;				// pixels
 		uint32		xres;				// dpi
@@ -50,8 +57,13 @@ public:
 
 								PWGWriter();
 
+	// PWG raster: "RaS2" once at the start, pages follow, no trailer.
 	static	const char*			FileMagic() { return "RaS2"; }
 	static	uint32				FileMagicSize() { return 4; }
+	// URF: "UNIRAST\0" plus the page count, so the whole document has
+	// to be known before the header can be written.
+	static	void				URFFileHeader(uint32 pageCount,
+									std::vector<uint8>& out);
 
 			void				BeginPage(const PageInfo& info);
 			// pixels: width * BytesPerPixel() bytes, top to bottom order
@@ -71,6 +83,7 @@ private:
 			void				_EncodeLine(const uint8* pixels,
 									std::vector<uint8>& out) const;
 			void				_WriteHeader(std::vector<uint8>& out) const;
+			void				_WriteURFHeader(std::vector<uint8>& out) const;
 
 	static	void				_PutU32(std::vector<uint8>& out, size_t offset,
 									uint32 value);

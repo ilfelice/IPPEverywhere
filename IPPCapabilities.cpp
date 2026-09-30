@@ -38,6 +38,7 @@ IPPCapabilities::SetDefaults()
 	fromPrinter = false;
 	queried = 0;
 	pwgRaster = true;
+	urf = false;
 	color = true;
 	gray = true;
 	duplex = false;
@@ -346,6 +347,37 @@ IPPCapabilities::SetFrom(const IPPAttributes& attributes)
 	if (attributes.Has("document-format-supported")) {
 		pwgRaster = attributes.Contains("document-format-supported",
 			"image/pwg-raster");
+		urf = attributes.Contains("document-format-supported", "image/urf");
+	}
+
+	// URF printers describe themselves in urf-supported, a list of short
+	// codes: W8 / SRGB24 (color spaces), RS300-600 (resolutions), DM1..4
+	// (duplex and how the back side is oriented), PQ3-4-5 (qualities)...
+	// Used below wherever the PWG attributes are missing.
+	std::vector<std::string> urfCodes = attributes.Strings("urf-supported");
+	bool urfGray = false;
+	bool urfColor = false;
+	std::vector<int> urfResolutions;
+	int urfDuplexMode = 0;
+	for (size_t i = 0; i < urfCodes.size(); i++) {
+		const std::string& code = urfCodes[i];
+		if (code == "W8")
+			urfGray = true;
+		else if (code == "SRGB24" || code == "ADOBERGB24")
+			urfColor = true;
+		else if (code.compare(0, 2, "RS") == 0) {
+			size_t pos = 2;
+			while (pos < code.size()) {
+				int value = atoi(code.c_str() + pos);
+				if (value > 0)
+					urfResolutions.push_back(value);
+				size_t dash = code.find('-', pos);
+				if (dash == std::string::npos)
+					break;
+				pos = dash + 1;
+			}
+		} else if (code.compare(0, 2, "DM") == 0)
+			urfDuplexMode = atoi(code.c_str() + 2);
 	}
 
 	// media sizes
@@ -402,9 +434,29 @@ IPPCapabilities::SetFrom(const IPPAttributes& attributes)
 			mediaTypes[0].isDefault = true;
 	}
 
-	// resolutions: prefer what the printer accepts for PWG raster
+	// resolutions: prefer what the printer accepts for PWG raster, then
+	// URF's list, then the general one
 	const char* resolutionAttribute = "pwg-raster-document-resolution-supported";
-	if (!attributes.Has(resolutionAttribute))
+	if (!attributes.Has(resolutionAttribute) && !urfResolutions.empty()) {
+		resolutions.clear();
+		for (size_t i = 0; i < urfResolutions.size(); i++) {
+			IPPResolution resolution;
+			resolution.x = resolution.y = urfResolutions[i];
+			resolution.isDefault = false;
+			resolutions.push_back(resolution);
+		}
+		bool haveDefault = false;
+		for (size_t i = 0; i < resolutions.size(); i++) {
+			if (resolutions[i].x == 300) {
+				resolutions[i].isDefault = true;
+				haveDefault = true;
+				break;
+			}
+		}
+		if (!haveDefault)
+			resolutions[0].isDefault = true;
+		resolutionAttribute = "";
+	} else if (!attributes.Has(resolutionAttribute))
 		resolutionAttribute = "printer-resolution-supported";
 	int count = attributes.Count(resolutionAttribute);
 	if (count > 0) {
@@ -445,6 +497,9 @@ IPPCapabilities::SetFrom(const IPPAttributes& attributes)
 			"srgb_8");
 		gray = attributes.Contains("pwg-raster-document-type-supported",
 			"sgray_8");
+	} else if (urfGray || urfColor) {
+		color = urfColor;
+		gray = urfGray;
 	} else if (attributes.Has("print-color-mode-supported")) {
 		color = attributes.Contains("print-color-mode-supported", "color");
 		gray = attributes.Contains("print-color-mode-supported", "monochrome");
@@ -457,6 +512,15 @@ IPPCapabilities::SetFrom(const IPPAttributes& attributes)
 	duplexShortEdge = attributes.Contains("sides-supported",
 		"two-sided-short-edge");
 	std::string back = attributes.String("pwg-raster-document-sheet-back");
+	if (back.empty()) {
+		// URF's DM codes carry the same information
+		switch (urfDuplexMode) {
+			case 2: back = "flipped"; break;
+			case 3: back = "rotated"; break;
+			case 4: back = "manual-tumble"; break;
+			default: break;
+		}
+	}
 	if (back == "rotated")
 		sheetBack = kRotated;
 	else if (back == "flipped")
@@ -548,6 +612,7 @@ IPPCapabilities::ToMessage(BMessage& message) const
 	message.AddBool("from-printer", fromPrinter);
 	message.AddInt64("queried", queried);
 	message.AddBool("pwg-raster", pwgRaster);
+	message.AddBool("urf", urf);
 	message.AddBool("color", color);
 	message.AddBool("gray", gray);
 	message.AddBool("duplex", duplex);
@@ -595,6 +660,7 @@ IPPCapabilities::FromMessage(const BMessage& message)
 	fromPrinter = message.GetBool("from-printer", false);
 	queried = message.GetInt64("queried", 0);
 	pwgRaster = message.GetBool("pwg-raster", true);
+	urf = message.GetBool("urf", false);
 	color = message.GetBool("color", true);
 	gray = message.GetBool("gray", true);
 	duplex = message.GetBool("duplex", false);

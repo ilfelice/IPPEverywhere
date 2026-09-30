@@ -74,6 +74,7 @@ public:
 	bool						fromPrinter;	// false = SetDefaults()
 	bigtime_t					queried;		// real_time_clock_usecs()
 	bool						pwgRaster;		// image/pwg-raster accepted
+	bool						urf;			// image/urf accepted
 	bool						color;
 	bool						gray;
 	bool						duplex;

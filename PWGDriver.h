@@ -42,6 +42,11 @@ private:
 			PWGWriter			fWriter;
 			std::vector<uint8>	fLineBuffer;
 			std::vector<uint8>	fPageBuffer;
+			// URF needs the page count in its file header, so URF
+			// documents are collected here and written at the end
+			std::vector<uint8>	fDocument;
+			uint32				fDocumentPages;
+			PWGWriter::Format	fFormat;
 			int					fPageIndex;
 			uint32				fPageWidth;		// sheet, pixels, portrait
 			uint32				fPageHeight;
