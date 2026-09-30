@@ -14,67 +14,36 @@ is added and refreshes the answer automatically.
 It needs the fixed IPP transport in `IPPTransport/`; Haiku's bundled one
 does not work on x86_64. See `NOTES.md` for the details and the design.
 
-## Build and install
+## Features
 
-    cd IPPEverywhere
-    make -j4
-    make install-driver
-    cd IPPTransport
-    make -j4
-    make install-transport
-    hey print_server quit
+- PWG/URF raster (user selectable)
+- IPP over network or USB (IPP-USB)
+- Printer auto-discovery
 
-Both add-ons install under `/boot/home/config/non-packaged/add-ons/Print/`.
-The system add-ons are not touched.
+## Installation
 
-## Add the printer
+1) Download latest hpkg package from:
+
+[https://github.com/ilfelice/IPPEverywhere/releases]https://github.com/ilfelice/IPPEverywhere/releases
+
+2) Double-click to install and restart the print_daemon.
+
+## Adding a printer
 
 1. Preferences > Printers > Add.
 2. Name it, choose driver "IPP Everywhere" and transport "IPP (network or USB)"
    (for USB as well).
 3. A dialog lists the IPP printers found on your network and the ones
    plugged in by USB. Pick yours, or type the URL by hand (for the
-   EW-M630T: `ipp://<printer address>:631/ipp/print`).
+   EW-M630T: `ipp://<printer address>:631/ipp/print`). You can also choose
+   the raster format (PWG or URF) from the `Raster format` menu.
 
-## Package
+## Bug reports
 
-    ./make-package.sh 0.1
+Report bugs at:
 
-builds both add-ons and creates `ipp_everywhere-0.1-1-x86_64.hpkg`. To
-install it, first remove any copies installed by `make install-driver` /
-`make install-transport` (they would shadow the packaged ones):
+[https://github.com/ilfelice/IPPEverywhere/issues]https://github.com/ilfelice/IPPEverywhere/issues
 
-    rm "/boot/home/config/non-packaged/add-ons/Print/IPP Everywhere"
-    rm "/boot/home/config/non-packaged/add-ons/Print/transport/IPP (network or USB)"
-    pkgman install ./ipp_everywhere-0.1-1-x86_64.hpkg
-    hey print_server quit
+## AI disclaimer
 
-Printers already added keep working: the driver and transport keep their
-names. `pkgman uninstall ipp_everywhere` removes it again.
-
-## Translating
-
-    make catkeys
-
-writes the English strings to `locales/en.catkeys`. Copy it to
-`locales/ja.catkeys` (or another language code), fill in the last column
-of each line, add the language to `LOCALES` in the Makefile, and run
-`make install-driver` again.
-
-## Files
-
-- `PWGEntry.cpp`  - driver entry point (name, signature, factories)
-- `PWGCap.cpp`    - capability table: paper sizes, resolutions, duplex,
-                    color, media type, quality, built from the printer's
-                    answer
-- `IPPClient.cpp` - asks the printer for its attributes
-- `IPPUSB.cpp`    - IPP over USB (also used by the transport)
-- `IPPCapabilities.cpp` - the printer capability model and its storage
-- `PWGDriver.cpp` - takes the rendered bands, converts them, writes pages
-- `PWGWriter.cpp` - PWG Raster header + line compression
-- `IPPDiscovery.cpp` - finds IPP printers on the network (mDNS)
-- `AddIPPPrinterWindow.cpp` - the dialog shown when adding a printer
-- `libprint/`     - Haiku's printer driver framework (MIT), with the
-                    "all pages" fix described in NOTES.md
-- `IPPTransport/` - fixed IPP transport
-- `NOTES.md`      - design notes, Haiku bugs found, test status, to-do
+This software was created using AI.
