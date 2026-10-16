@@ -10,14 +10,9 @@
 // written by the IPP Everywhere driver, see PWGDriver::StartDocument()
 static const char *kJobAttributesAttribute = "ipp-everywhere:job-attributes";
 
-// how a printer is addressed over IPP-USB
-static const char *kUSBRequestURI = "ipp://localhost:60000/ipp/print";
-static const char *kUSBRequestPath = "/ipp/print";
-static const char *kUSBRequestHost = "localhost:60000";
 #include <Path.h>
 #include <Message.h>
 #include <OS.h>
-#include <Url.h>
 
 #include <pwd.h>
 #include <stdio.h>
@@ -26,11 +21,11 @@ static const char *kUSBRequestHost = "localhost:60000";
 #include <unistd.h>
 
 #include "IppContent.h"
-#include "IppURLConnection.h"
 #include "IppSetupDlg.h"
 #include "IppTransport.h"
 #include "IppDefs.h"
 #include "DbgMsg.h"
+#include "IPPClient.h"
 #include "IPPUSB.h"
 
 #include <sstream>
@@ -145,7 +140,7 @@ IppTransport::~IppTransport()
 			request->setDelimiter(IPP_OPERATION_ATTRIBUTES_TAG);
 			request->setCharset("attributes-charset", "utf-8");
 			request->setNaturalLanguage("attributes-natural-language", "en-us");
-			request->setURI("printer-uri", usb ? kUSBRequestURI : __url);
+			request->setURI("printer-uri", usb ? IPPClient::kUSBRequestURI : __url);
 			request->setMimeMediaType("document-format", "application/octet-stream");
 			request->setNameWithoutLanguage("requesting-user-name", __user);
 			if (sendJobAttributes) {
@@ -158,110 +153,57 @@ IppTransport::~IppTransport()
 			__fs.seekg(0, ios::beg);
 			request->setRawData(__fs, fssize);
 
-			// A response handler shared by the two ways of talking to the
-			// printer: sets __error, error_msg, busy, retryWithoutAttributes.
-			struct Outcome {
-				bool* error; string* message; bool* busy; bool* retry;
-				bool* sendAttrs;
-				void Set(const IppContent* response)
-				{
-					if (!response->fail())
-						return;
-					*error = true;
-					*message = response->getStatusMessage();
-					*busy = response->getStatusCode() == IPP_SERVER_ERROR_BUSY;
-					// the printer did not like our job attributes: try once
-					// more with the bare job
-					if (*sendAttrs && !*busy
-						&& response->getStatusCode() >= 0x0400
-						&& response->getStatusCode() < 0x0500) {
-						*sendAttrs = false;
-						*retry = true;
-					}
-				}
-			} outcome = { &__error, &error_msg, &busy, &retryWithoutAttributes,
-				&sendJobAttributes };
+			// The HTTP exchange is the driver's (IPPClient), the same code
+			// for network and USB: HTTP/1.1 request, reply read until it
+			// is complete, chunked encoding decoded.
+			ostringstream bodyStream;
+			bodyStream << *request;
+			delete request;
+			string bodyText = bodyStream.str();
+			std::vector<uint8> ippBody(bodyText.begin(), bodyText.end());
+			std::vector<uint8> httpRequest;
+			std::vector<uint8> httpResponse;
+			BString exchangeError;
 
-			if (usb) {
-				// IPP-USB: the same HTTP exchange over the USB interface
-				ostringstream body;
-				body << *request;
-				delete request;
-				string bodyText = body.str();
-				char header[512];
-				snprintf(header, sizeof(header),
-					"POST %s HTTP/1.1\r\nHost: %s\r\n"
-					"Content-Type: application/ipp\r\nContent-Length: %zu\r\n\r\n",
-					kUSBRequestPath, kUSBRequestHost, bodyText.size());
-				std::vector<uint8> data(header, header + strlen(header));
-				data.insert(data.end(), bodyText.begin(), bodyText.end());
-
-				std::vector<uint8> reply;
-				BString usbError;
-				if (IPPUSB::Exchange(__url, data, reply, usbError) != B_OK) {
-					__error = true;
-					error_msg = usbError.String();
-				} else {
-					string text(reply.begin(), reply.end());
-					size_t headerEnd = text.find("\r\n\r\n");
-					int httpStatus = 0;
-					size_t space = text.find(' ');
-					if (space != string::npos)
-						httpStatus = atoi(text.c_str() + space + 1);
-					if (headerEnd == string::npos || httpStatus != 200) {
-						__error = true;
-						error_msg = "cannot get a IPP response.";
-					} else {
-						// chunked responses are unusual here, but handle them
-						std::vector<uint8> ippBody;
-						string lower(text.substr(0, headerEnd));
-						for (size_t i = 0; i < lower.size(); i++)
-							lower[i] = tolower(lower[i]);
-						size_t pos = headerEnd + 4;
-						if (lower.find("transfer-encoding: chunked") != string::npos) {
-							while (pos < reply.size()) {
-								size_t lineEnd = text.find("\r\n", pos);
-								if (lineEnd == string::npos)
-									break;
-								long size = strtol(text.c_str() + pos, NULL, 16);
-								pos = lineEnd + 2;
-								if (size <= 0)
-									break;
-								ippBody.insert(ippBody.end(), reply.begin() + pos,
-									reply.begin() + pos + size);
-								pos += size + 2;
-							}
-						} else
-							ippBody.assign(reply.begin() + pos, reply.end());
-						istringstream is(string(ippBody.begin(), ippBody.end()));
-						IppContent response;
-						is >> response;
-						outcome.Set(&response);
-					}
-				}
+			if (!IPPClient::BuildHTTPRequest(__url, ippBody, httpRequest)) {
+				__error = true;
+				error_msg = "invalid printer URL.";
+			} else if (IPPClient::Exchange(__url, httpRequest, httpResponse,
+					exchangeError) != B_OK) {
+				__error = true;
+				error_msg = exchangeError.String();
 			} else {
-				BUrl url(__url, true);
-				IppURLConnection conn(url);
-				conn.setIppRequest(request);
-				conn.setRequestProperty("Connection", "close");
-
-				DBGMSG(("do connect\n"));
-
-				HTTP_RESPONSECODE response_code = conn.getResponseCode();
-				if (response_code == HTTP_OK) {
-					const char *content_type = conn.getContentType();
-					if (content_type == NULL || strncasecmp(content_type, "application/ipp", 15) == 0) {
-						outcome.Set(conn.getIppResponse());
-					} else {
-						__error = true;
-						error_msg = "cannot get a IPP response.";
-					}
-				} else if (response_code != HTTP_UNKNOWN) {
+				int httpStatus = 0;
+				std::vector<uint8> replyBody;
+				if (!IPPClient::ParseHTTPResponse(httpResponse, httpStatus,
+						replyBody)) {
 					__error = true;
-					error_msg = conn.getResponseMessage();
+					error_msg = "cannot get a IPP response.";
+				} else if (httpStatus != 200) {
+					__error = true;
+					// the status line, e.g. "HTTP/1.1 505 HTTP Version Not Supported"
+					string text(httpResponse.begin(), httpResponse.end());
+					error_msg = text.substr(0, text.find("\r\n"));
+				} else if (replyBody.size() < 8) {
+					__error = true;
+					error_msg = "cannot get a IPP response.";
 				} else {
-					__error = true;
-					error_msg = "cannot connect to the IPP server.";
+					istringstream is(string(replyBody.begin(), replyBody.end()));
+					IppContent response;
+					is >> response;
+					if (response.fail()) {
+						__error = true;
+						error_msg = response.getStatusMessage();
+						busy = response.getStatusCode() == IPP_SERVER_ERROR_BUSY;
+						// the printer did not like our job attributes: try
+						// once more with the bare job
+						if (sendJobAttributes && !busy
+							&& response.getStatusCode() >= 0x0400
+							&& response.getStatusCode() < 0x0500) {
+							sendJobAttributes = false;
+							retryWithoutAttributes = true;
+						}
+					}
 				}
 			}
 

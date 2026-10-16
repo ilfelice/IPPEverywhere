@@ -301,8 +301,9 @@ public:
 		return true;
 	}
 
-	// reads until the peer closes the connection
-	std::vector<uint8> ReceiveAll()
+	// Reads until the HTTP message is complete (Content-Length reached,
+	// last chunk seen) or the peer closes the connection.
+	std::vector<uint8> ReceiveResponse()
 	{
 		std::vector<uint8> data;
 		uint8 buffer[16384];
@@ -311,7 +312,9 @@ public:
 			if (n <= 0)
 				break;
 			data.insert(data.end(), buffer, buffer + n);
-			if (data.size() > 4 * 1024 * 1024)
+			if (IPPUSB::CompleteMessageLength(data) > 0)
+				break;
+			if (data.size() > 16 * 1024 * 1024)
 				break;
 		}
 		return data;
@@ -498,47 +501,43 @@ const char* IPPClient::kUSBRequestPath = "/ipp/print";
 const char* IPPClient::kUSBRequestHost = "localhost:60000";
 
 
-status_t
-IPPClient::GetPrinterAttributes(const char* url, IPPAttributes& attributes,
-	BString& errorText, bigtime_t timeout)
+bool
+IPPClient::BuildHTTPRequest(const char* url, const std::vector<uint8>& ippBody,
+	std::vector<uint8>& request)
 {
+	std::string path;
+	std::string hostHeader;
 	if (IPPUSB::IsUSBURL(url)) {
-		std::vector<uint8> body = BuildRequest(kUSBRequestURI);
-		char header[512];
-		snprintf(header, sizeof(header),
-			"POST %s HTTP/1.1\r\nHost: %s\r\n"
-			"Content-Type: application/ipp\r\nContent-Length: %zu\r\n\r\n",
-			kUSBRequestPath, kUSBRequestHost, body.size());
-		std::vector<uint8> request(header, header + strlen(header));
-		request.insert(request.end(), body.begin(), body.end());
-
-		std::vector<uint8> response;
-		status_t status = IPPUSB::Exchange(url, request, response, errorText);
-		if (status != B_OK)
-			return status;
-
-		int httpStatus = 0;
-		std::vector<uint8> ippBody;
-		if (!ParseHTTP(response, httpStatus, ippBody)) {
-			errorText = "No HTTP response";
-			return B_ERROR;
-		}
-		if (httpStatus != 200) {
-			errorText << "HTTP error " << httpStatus;
-			return B_ERROR;
-		}
-		uint16 ippStatus = 0;
-		if (!ParseIPP(ippBody, ippStatus, attributes)) {
-			errorText = "Malformed IPP response";
-			return B_ERROR;
-		}
-		if (ippStatus >= 0x0400) {
-			errorText << "IPP error 0x"
-				<< BString().SetToFormat("%04x", ippStatus);
-			return B_ERROR;
-		}
-		return B_OK;
+		path = kUSBRequestPath;
+		hostHeader = kUSBRequestHost;
+	} else {
+		std::string host;
+		uint16 port;
+		if (!ParseURL(url, host, port, path))
+			return false;
+		char text[16];
+		snprintf(text, sizeof(text), ":%u", port);
+		hostHeader = host + text;
 	}
+
+	char header[512];
+	snprintf(header, sizeof(header),
+		"POST %s HTTP/1.1\r\nHost: %s\r\n"
+		"Content-Type: application/ipp\r\nContent-Length: %zu\r\n"
+		"Connection: close\r\n\r\n", path.c_str(), hostHeader.c_str(),
+		ippBody.size());
+	request.assign(header, header + strlen(header));
+	request.insert(request.end(), ippBody.begin(), ippBody.end());
+	return true;
+}
+
+
+status_t
+IPPClient::Exchange(const char* url, const std::vector<uint8>& request,
+	std::vector<uint8>& response, BString& errorText, bigtime_t timeout)
+{
+	if (IPPUSB::IsUSBURL(url))
+		return IPPUSB::Exchange(url, request, response, errorText);
 
 	std::string host;
 	std::string path;
@@ -552,23 +551,44 @@ IPPClient::GetPrinterAttributes(const char* url, IPPAttributes& attributes,
 	status_t status = connection.Connect(host, port, timeout, errorText);
 	if (status != B_OK)
 		return status;
-
-	std::vector<uint8> body = BuildRequest(url);
-	char header[512];
-	snprintf(header, sizeof(header),
-		"POST %s HTTP/1.1\r\nHost: %s:%u\r\n"
-		"Content-Type: application/ipp\r\nContent-Length: %zu\r\n"
-		"Connection: close\r\n\r\n", path.c_str(), host.c_str(), port,
-		body.size());
-	std::vector<uint8> request(header, header + strlen(header));
-	request.insert(request.end(), body.begin(), body.end());
-
 	if (!connection.Send(request)) {
 		errorText = "Cannot send request";
 		return B_ERROR;
 	}
+	response = connection.ReceiveResponse();
+	if (response.empty()) {
+		errorText = "No response from the printer";
+		return B_ERROR;
+	}
+	return B_OK;
+}
 
-	std::vector<uint8> response = connection.ReceiveAll();
+
+bool
+IPPClient::ParseHTTPResponse(const std::vector<uint8>& response,
+	int& httpStatus, std::vector<uint8>& body)
+{
+	return ParseHTTP(response, httpStatus, body);
+}
+
+
+status_t
+IPPClient::GetPrinterAttributes(const char* url, IPPAttributes& attributes,
+	BString& errorText, bigtime_t timeout)
+{
+	bool usb = IPPUSB::IsUSBURL(url);
+	std::vector<uint8> body = BuildRequest(usb ? kUSBRequestURI : url);
+	std::vector<uint8> request;
+	if (!BuildHTTPRequest(url, body, request)) {
+		errorText = "Invalid printer URL";
+		return B_BAD_VALUE;
+	}
+
+	std::vector<uint8> response;
+	status_t status = Exchange(url, request, response, errorText, timeout);
+	if (status != B_OK)
+		return status;
+
 	int httpStatus = 0;
 	std::vector<uint8> ippBody;
 	if (!ParseHTTP(response, httpStatus, ippBody)) {
@@ -579,7 +599,6 @@ IPPClient::GetPrinterAttributes(const char* url, IPPAttributes& attributes,
 		errorText << "HTTP error " << httpStatus;
 		return B_ERROR;
 	}
-
 	uint16 ippStatus = 0;
 	if (!ParseIPP(ippBody, ippStatus, attributes)) {
 		errorText = "Malformed IPP response";

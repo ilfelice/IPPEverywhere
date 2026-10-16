@@ -63,6 +63,25 @@ public:
 	static	bool				ParseURL(const char* url, std::string& host,
 									uint16& port, std::string& path);
 
+	// The HTTP layer, shared with the IPP transport.
+	// Wraps an IPP message in an HTTP/1.1 POST for `url` (ipp:// or
+	// ipp-usb://).
+	static	bool				BuildHTTPRequest(const char* url,
+									const std::vector<uint8>& ippBody,
+									std::vector<uint8>& request);
+	// Sends an HTTP request to the printer and receives the whole reply:
+	// over TCP for ipp://, over USB for ipp-usb://. The reply is complete
+	// when its Content-Length or chunked body is in, or the peer closes.
+	static	status_t			Exchange(const char* url,
+									const std::vector<uint8>& request,
+									std::vector<uint8>& response,
+									BString& errorText,
+									bigtime_t timeout = 4000000);
+	// Splits a reply into HTTP status and body (chunked decoded).
+	static	bool				ParseHTTPResponse(
+									const std::vector<uint8>& response,
+									int& httpStatus, std::vector<uint8>& body);
+
 	// how a printer is addressed over IPP-USB
 	static	const char*			kUSBRequestURI;
 	static	const char*			kUSBRequestPath;

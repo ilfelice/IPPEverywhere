@@ -10,10 +10,10 @@
 #include <Rect.h>
 #include <TextControl.h>
 #include <View.h>
-#include <Url.h>
 
 #include "IppContent.h"
-#include "IppURLConnection.h"
+#include "IPPClient.h"
+#include <String.h>
 #include "IppSetupDlg.h"
 #include "IppDefs.h"
 #include "DbgMsg.h"
@@ -106,39 +106,16 @@ bool IppSetupView::UpdateViewData()
 	string error_msg;
 
 	if (*url->Text()) {
-		IppContent *request = new IppContent;
-		request->setOperationId(IPP_GET_PRINTER_ATTRIBUTES);
-		request->setDelimiter(IPP_OPERATION_ATTRIBUTES_TAG);
-		request->setCharset("attributes-charset", "utf-8");
-		request->setNaturalLanguage("attributes-natural-language", "en-us");
-		request->setURI("printer-uri", url->Text());
-		request->setDelimiter(IPP_END_OF_ATTRIBUTES_TAG);
-
-		IppURLConnection conn(BUrl(url->Text(), true));
-		conn.setIppRequest(request);
-		conn.setRequestProperty("Connection", "close");
-
-		HTTP_RESPONSECODE response_code = conn.getResponseCode();
-		if (response_code == HTTP_OK) {
-			const char *content_type = conn.getContentType();
-			if (content_type == NULL
-				|| strncasecmp(content_type, "application/ipp", 15) == 0) {
-				const IppContent *ipp_response = conn.getIppResponse();
-				if (ipp_response->good()) {
-					dir->WriteAttr(IPP_URL, B_STRING_TYPE, 0, url->Text(),
-						strlen(url->Text()) + 1);
-					return true;
-				} else {
-					error_msg = ipp_response->getStatusMessage();
-				}
-			} else {
-				error_msg = "cannot get a IPP response.";
-			}
-		} else if (response_code != HTTP_UNKNOWN) {
-			error_msg = conn.getResponseMessage();
-		} else {
-			error_msg = "cannot connect to the IPP server.";
+		// the same query the driver makes, over network or USB
+		IPPAttributes attributes;
+		BString error;
+		if (IPPClient::GetPrinterAttributes(url->Text(), attributes, error)
+				== B_OK) {
+			dir->WriteAttr(IPP_URL, B_STRING_TYPE, 0, url->Text(),
+				strlen(url->Text()) + 1);
+			return true;
 		}
+		error_msg = error.String();
 	} else {
 		error_msg = "please input the printer URL.";
 	}

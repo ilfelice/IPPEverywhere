@@ -9,15 +9,12 @@ SRCS = \
 	Ipp.cpp \
 	IppSetupDlg.cpp \
 	IppTransport.cpp \
-	HttpURLConnection.cpp \
 	IppContent.cpp \
-	IppURLConnection.cpp \
-	Socket.cpp \
-	SocketStream.cpp \
 	DbgMsg.cpp \
+	../IPPClient.cpp \
 	../IPPUSB.cpp
 
-LIBS = be bnetapi device network $(STDCPPLIBS)
+LIBS = be device network $(STDCPPLIBS)
 
 LOCAL_INCLUDE_PATHS = . ..
 
@@ -32,12 +29,14 @@ DEVEL_DIRECTORY := \
 	$(shell findpaths -r "makefile_engine" B_FIND_PATH_DEVELOP_DIRECTORY)
 include $(DEVEL_DIRECTORY)/etc/makefile-engine
 
-## IPPUSB.cpp lives in the parent directory. Listing it as ../IPPUSB.cpp
+## IPPUSB.cpp and IPPClient.cpp live in the parent directory. Listing them as ../x.cpp
 ## makes the engine add ".." to VPATH, and then make finds the *driver's*
 ## object files (../objects.*/DbgMsg.o, IPPUSB.o) instead of building ours.
 ## So VPATH is cleared again and the parent file gets an explicit rule.
 VPATH :=
 $(OBJ_DIR)/IPPUSB.o : ../IPPUSB.cpp ../IPPUSB.h
+	$(CC) -c $< $(INCLUDES) $(CFLAGS) -o "$@"
+$(OBJ_DIR)/IPPClient.o : ../IPPClient.cpp ../IPPClient.h ../IPPUSB.h
 	$(CC) -c $< $(INCLUDES) $(CFLAGS) -o "$@"
 
 ## Installed under a distinct name so it never clashes with the system IPP

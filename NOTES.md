@@ -1,7 +1,7 @@
 # IPP Everywhere driver for Haiku: project notes
 
-Status as of 2026-09-25 (discovery, capability polling, scale to fit,
-localization, IPP-USB, packaging included). Target printer: Epson EW-M630T series (EW-M630TW),
+Status as of 2026-10-16 (discovery, capability polling, scale to fit,
+localization, IPP-USB, packaging, URF, shared HTTP layer included). Target printer: Epson EW-M630T series (EW-M630TW),
 Haiku R1~beta6+development hrev60082, x86_64.
 
 ## 1. Goal and approach
@@ -334,8 +334,16 @@ request-id and integer attributes. On x86_64 that is 8 bytes, IPP needs
 types to `int32`/`uint32`. While there:
 
 - IPP version bumped from 1.0 to 1.1
-- HTTP request changed from 1.1 to 1.0 (the transport cannot decode
-  chunked responses)
+- The HTTP layer (`HttpURLConnection`, `IppURLConnection`, `Socket`,
+  `SocketStream`) is gone. Until 2026-10-16 the transport sent HTTP/1.0
+  requests because that layer could not decode chunked responses; an HP
+  Envy answered "505 HTTP Version Not Supported" and could not print.
+  The transport now uses the driver's `IPPClient` (compiled in from the
+  parent directory like `IPPUSB.cpp`): HTTP/1.1 requests, the reply read
+  until it is complete (Content-Length, last chunk, or the peer closing),
+  chunked encoding decoded. One HTTP implementation for the driver's
+  capability query, the transport's Print-Job, network and USB alike.
+  The transport's old URL-check dialog uses the same query.
 - CUPS-broadcast printer roster removed; `list_transport_ports()` is
   deliberately absent (see 5.3)
 - temporary job file moved from the printer's spool folder to the system
