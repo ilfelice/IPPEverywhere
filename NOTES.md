@@ -93,8 +93,9 @@ bands, calling `PWGDriver::NextBand()` for each band.
 - `kCanRotatePageInLandscape` is not supported on purpose: libprint then
   rotates landscape pages itself and the driver always emits portrait
   pages.
-- `kCopyCommand` is not supported: libprint sends the page N times for
-  N copies. Simple and works with duplex/collate.
+- Copies: when the printer reports `copies-supported` > 1 the driver
+  declares `kCopyCommand` and the printer makes the copies (see 4.4);
+  otherwise libprint sends the page N times for N copies.
 - `PWGDriver::StartPage()` computes the page geometry from the job data
   (swapping to portrait if needed) and starts a page in `PWGWriter`.
 - `NextBand()` converts BGRA to RGB or 8 bit gray and feeds lines to the
@@ -114,12 +115,15 @@ bands, calling `PWGDriver::NextBand()` for each band.
 ### 4.1 Adding a printer: discovery
 
 `PWGPrinterDriver::AddPrinter()` runs when print_server has created the
-printer folder. If the printer's transport is an IPP one (attribute
-`transport` contains "IPP"), it shows `AddIPPPrinterWindow`: a list of
-printers found on the network, a "Search again" button and a URL field.
-The chosen URL is written to the `transport_address` attribute, which is
-where the IPP transport reads it, so the transport never has to ask.
-For other transports (USB...) nothing is shown.
+printer folder. The driver works with exactly one transport,
+"IPP (network or USB)" (attribute `transport`); with any other one it
+shows a dialog explaining that and returns NULL, so print_server deletes
+the printer again. With the right transport it shows
+`AddIPPPrinterWindow`: a list of printers found on the network and on
+USB, a "Search again" button, a URL field and the raster format menu
+(4.8). The chosen URL is written to the `transport_address` attribute,
+which is where the IPP transport reads it, so the transport never has to
+ask.
 
 `IPPDiscovery::Browse()` is a self-contained mDNS browser: it binds UDP
 5353 (falling back to an ephemeral port with the QU bit if 5353 is taken,
