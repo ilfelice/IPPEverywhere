@@ -295,6 +295,34 @@ VPATH, whereupon make finds the *driver's* object files
 own; VPATH is cleared again after the engine is included and the parent
 file has an explicit rule.
 
+### 4.8 URF (Apple raster)
+
+Some AirPrint printers accept only `image/urf`, not `image/pwg-raster`.
+URF uses the same line compression as PWG raster with different headers:
+`UNIRAST\0` plus a big-endian page count at the start of the file, and a
+32 byte page header (bits per pixel, color space 0 = gray / 1 = sRGB,
+duplex 1 = none / 2 = short edge / 3 = long edge, print quality, width,
+height, dpi). `PWGWriter` has a `Format` in its `PageInfo`; the driver
+picks PWG raster when the printer accepts it and URF otherwise
+(`PWGDriver::StartDocument()`), and refuses with a dialog when neither is
+offered. Because the URF file header needs the page count, URF pages are
+collected in memory and written in `EndDocument()`. Back sides get the
+same transforms as for PWG raster; URF has no header fields for them.
+
+URF-only printers describe themselves in `urf-supported`, a list of
+codes; `IPPCapabilities::SetFrom()` uses them wherever the PWG attributes
+are missing: W8 / SRGB24 for color spaces, RS300-600 for resolutions,
+DM2/3/4 for the back side orientation (flipped / rotated / manual-tumble).
+Verified against a simulated URF-only printer; no real one at hand.
+
+To make URF testable on a printer that accepts both formats, the
+add-printer dialog has a "Raster format" menu (Automatic / PWG Raster /
+URF). When a printer is selected (or a typed URL confirmed with Enter),
+the dialog queries it in a thread and enables the formats it offers. The
+choice is stored in the printer folder attribute `ipp-everywhere:format`
+and read by `PWGDriver::StartDocument()`; it only overrides the automatic
+choice when the printer really accepts the chosen format.
+
 ## 5. Haiku bugs found on the way
 
 ### 5.1 IPP transport is broken on x86_64
@@ -385,6 +413,8 @@ Localization: works (Japanese catalog).
 IPP-USB: works (printer added from the USB entry in the discovery
 dialog, capability query and printing over interface 3).
 
+URF: implemented, tested only against a simulated printer.
+
 Untested: 600 dpi, grayscale, short-edge duplex, media types other than
 plain, quality "High", envelopes, copies > 1, Pages per sheet.
 
@@ -393,8 +423,6 @@ Not working: Pe (fails silently; not investigated yet).
 ## 7. Ideas and to-do
 
 - Discovery: also browse `_ipps._tcp`; IPv6 (AAAA) once Haiku needs it.
-- URF-only printers (no `image/pwg-raster`): needs an Apple Raster
-  encoder; `IPPCapabilities::pwgRaster` already records the situation.
 - Custom paper sizes from the printer's `custom_min`/`custom_max` range.
 - Make transport failures mark the job as failed instead of leaving it
   in "Processing".

@@ -27,8 +27,11 @@ must be removed and added again.
    be added with any other transport (Haiku's "USB Port", for one, would
    print garbage).
 3. A dialog lists the printers found on your network and on USB. Pick
-   yours and click OK. If it is not listed, type its URL in the field;
-   for most printers it is `ipp://<printer IP address>:631/ipp/print`.
+   yours and click "Add printer". If it is not listed, type its URL in
+   the field and press Enter; for most printers it is
+   `ipp://<printer IP address>:631/ipp/print`. The "Raster format" menu
+   can stay on "Automatic"; it is there to force PWG Raster or URF on
+   printers that accept both, for testing.
 
 The driver then asks the printer what it can do (paper sizes, media
 types, resolutions, duplex...) and builds its dialogs from the answer.
