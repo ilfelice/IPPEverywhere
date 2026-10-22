@@ -63,6 +63,10 @@ struct Instance {
 	bool		haveSRV;
 	bool		haveTXT;
 	std::map<std::string, std::string> txt;
+	// IPv4 address the replies about this instance were sent from; used
+	// when the responder never sends an A record for its host (some
+	// Brother printers)
+	std::string	sender;
 
 	Instance() : port(0), haveSRV(false), haveTXT(false) {}
 };
@@ -258,9 +262,21 @@ public:
 			return false;
 
 		uint8 buffer[9000];
-		ssize_t n = recvfrom(fSocket, buffer, sizeof(buffer), 0, NULL, NULL);
+		sockaddr_in from;
+		socklen_t fromLength = sizeof(from);
+		memset(&from, 0, sizeof(from));
+		ssize_t n = recvfrom(fSocket, buffer, sizeof(buffer), 0,
+			(sockaddr*)&from, &fromLength);
 		if (n <= 12)
 			return true;
+		fSender.clear();
+		if (from.sin_family == AF_INET) {
+			char text[32];
+			uint32 a = ntohl(from.sin_addr.s_addr);
+			snprintf(text, sizeof(text), "%u.%u.%u.%u", (a >> 24) & 0xff,
+				(a >> 16) & 0xff, (a >> 8) & 0xff, a & 0xff);
+			fSender = text;
+		}
 		_Parse(buffer, n);
 		return true;
 	}
@@ -348,6 +364,8 @@ private:
 					it = fInstances.find(key);
 				}
 				Instance& instance = it->second;
+				if (instance.sender.empty())
+					instance.sender = fSender;
 				instance.port = (msg[rdPos + 4] << 8) | msg[rdPos + 5];
 				size_t p = rdPos + 6;
 				std::string target;
@@ -364,6 +382,8 @@ private:
 				if (it == fInstances.end())
 					return;
 				Instance& instance = it->second;
+				if (instance.sender.empty())
+					instance.sender = fSender;
 				size_t p = rdPos;
 				size_t end = rdPos + rdLength;
 				while (p < end) {
@@ -400,6 +420,7 @@ private:
 	int								fSocket;
 	bool							fUnicast;
 	sockaddr_in						fGroup;
+	std::string						fSender;	// of the packet being parsed
 	std::map<std::string, Instance>	fInstances;
 	std::map<std::string, std::string> fHosts;
 };
@@ -428,11 +449,22 @@ IPPDiscovery::Browse(std::vector<DiscoveredPrinter>& printers,
 	bigtime_t start = system_time();
 	bigtime_t followUpAt = start + timeout / 2;
 	bool followUpSent = false;
+	// A single multicast packet can be lost (first packet after an idle
+	// period, switch still learning the group); RFC 6762 has queriers
+	// repeat the question. Resend at 0.5 s and 1 s.
+	int repeats = 2;
+	bigtime_t nextRepeatAt = start + 500000;
 
 	while (true) {
 		bigtime_t now = system_time();
 		if (now >= start + timeout)
 			break;
+
+		if (repeats > 0 && now >= nextRepeatAt) {
+			browser.Send(initial);
+			repeats--;
+			nextRepeatAt = now + 500000;
+		}
 
 		if (!followUpSent && now >= followUpAt) {
 			// Ask explicitly for whatever the responders left out.
@@ -483,6 +515,8 @@ IPPDiscovery::Browse(std::vector<DiscoveredPrinter>& printers,
 			= browser.Hosts().find(ToLower(instance.host));
 		if (host != browser.Hosts().end())
 			printer.address = host->second.c_str();
+		else if (!instance.sender.empty())
+			printer.address = instance.sender.c_str();
 		if (instance.txt.count("rp"))
 			printer.path = instance.txt["rp"].c_str();
 		if (instance.txt.count("ty"))
